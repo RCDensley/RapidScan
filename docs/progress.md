@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-04-29
 **Current phase:** Phase 1 — Foundation
-**Next issue:** #2 — Provision Azure SQL and apply schema
+**Next issue:** #3 — Projects CRUD API
 
 ---
 
@@ -12,12 +12,13 @@
 | --- | --- | --- |
 | Setup | Repo initialised, CLAUDE.md, ISSUES.md (30 issues), docs/progress.md, all GitHub issues created with labels and tests | 2026-04-29 |
 | #1 | Initialise Azure SWA project structure | 2026-04-29 |
+| #2 | Provision Azure SQL and apply schema | 2026-04-29 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #2.
+None — ready to begin Issue #3.
 
 ---
 
@@ -27,6 +28,9 @@ None — ready to begin Issue #2.
 | --- | --- |
 | #1 | `multer@^1.4.5` doesn't resolve — the last 1.x release is `1.4.5-lts.1` (prerelease tag breaks semver range). Pinned explicitly. |
 | #1 | Add `-UseBasicParsing` to all `Invoke-WebRequest` test commands to suppress PowerShell's script-execution security prompt. |
+| #2 | `tasks.dependency_id ON DELETE SET NULL` causes a multiple cascade paths error in Azure SQL. Fixed to `ON DELETE NO ACTION` — safe because the project cascade already deletes all tasks before the dependency FK is evaluated. |
+| #2 | `Authentication="Active Directory Default"` in a connection string is .NET-specific and not supported by mssql/tedious. Use contained database users with SQL auth (`User Id` / `Password`) for local dev. |
+| #2 | `func start` will overwrite and encrypt `local.settings.json` if the JSON is invalid when it starts — always validate JSON before running. |
 
 ---
 

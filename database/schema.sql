@@ -66,7 +66,7 @@ CREATE TABLE scan_history (
 CREATE TABLE tasks (
   task_id           UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
   project_id        UNIQUEIDENTIFIER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
-  dependency_id     UNIQUEIDENTIFIER NULL REFERENCES dependencies(dependency_id) ON DELETE SET NULL,
+  dependency_id     UNIQUEIDENTIFIER NULL REFERENCES dependencies(dependency_id) ON DELETE NO ACTION,
   title             NVARCHAR(500) NOT NULL,
   description       NVARCHAR(MAX) NULL,
   severity          NVARCHAR(10) NOT NULL CHECK (severity IN ('critical', 'high', 'medium', 'low')),
