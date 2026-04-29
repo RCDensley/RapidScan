@@ -66,6 +66,7 @@ Update `docs/progress.md` at the end of every session with:
 ### Environment variables
 - Local: `api/local.settings.json` (never committed)
 - Production: set in Azure SWA configuration
+- All project-specific vars are prefixed `RAPIDSCAN_` to avoid conflicts with other projects in the same shell (e.g. `RAPIDSCAN_SQL_CONNECTION_STRING`, `RAPIDSCAN_OPENAI_API_KEY`). Azure Functions runtime vars (`AzureWebJobsStorage`, `FUNCTIONS_WORKER_RUNTIME`) keep their standard names.
 
 ### Testing commands
 Use `Invoke-WebRequest` (PowerShell), not `curl`:

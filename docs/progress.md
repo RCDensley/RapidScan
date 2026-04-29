@@ -2,45 +2,48 @@
 
 **Last updated:** 2026-04-29
 **Current phase:** Phase 1 — Foundation
-**Next issue:** #1 — Initialise Azure SWA project structure
+**Next issue:** #2 — Provision Azure SQL and apply schema
 
 ---
 
 ## Completed Issues
 
 | Issue | Title | Date |
-|-------|-------|------|
+| --- | --- | --- |
 | Setup | Repo initialised, CLAUDE.md, ISSUES.md (30 issues), docs/progress.md, all GitHub issues created with labels and tests | 2026-04-29 |
+| #1 | Initialise Azure SWA project structure | 2026-04-29 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #1.
+None — ready to begin Issue #2.
 
 ---
 
 ## Lessons Learned
 
-Nothing recorded yet.
+| Issue | Lesson |
+| --- | --- |
+| #1 | `multer@^1.4.5` doesn't resolve — the last 1.x release is `1.4.5-lts.1` (prerelease tag breaks semver range). Pinned explicitly. |
+| #1 | Add `-UseBasicParsing` to all `Invoke-WebRequest` test commands to suppress PowerShell's script-execution security prompt. |
 
 ---
 
 ## Decisions Made
 
 | Date | Decision | Rationale |
-|------|----------|-----------|
+| --- | --- | --- |
 | 2026-04-29 | UI/UX Design added as Issue #4, shifting old #4–#29 to #5–#30 (30 issues total) | Frontend issues need agreed design before implementation begins |
 | 2026-04-29 | Testing approach: `Invoke-WebRequest` (PowerShell) for backend, manual steps for frontend | User runs tests from PowerShell |
 | 2026-04-29 | Component library: TBD in Issue #4 | No existing preference; to be decided with full context |
 | 2026-04-29 | No auth in v1 | Internal tool only; Entra ID SSO noted as a future phase item |
+| 2026-04-29 | All project-specific env vars prefixed `RAPIDSCAN_` | Avoids collisions with other Azure projects sharing the same shell |
 
 ---
 
 ## Forward Changes Log
 
-Nothing recorded yet. When a forward change is made during implementation, record it here:
-
 | Date | Issue worked | Forward change made | Issues updated |
-|------|-------------|---------------------|----------------|
-| — | — | — | — |
+| --- | --- | --- | --- |
+| 2026-04-29 | #1 | All project env vars prefixed `RAPIDSCAN_` (e.g. `RAPIDSCAN_SQL_CONNECTION_STRING`) | #2, #6, #7, #8, #9 |
