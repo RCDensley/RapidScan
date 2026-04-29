@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-04-29
 **Current phase:** Phase 1 — Foundation
-**Next issue:** #3 — Projects CRUD API
+**Next issue:** #5 — Projects list page (UI)
 
 ---
 
@@ -14,12 +14,13 @@
 | #1 | Initialise Azure SWA project structure | 2026-04-29 |
 | #2 | Provision Azure SQL and apply schema | 2026-04-29 |
 | #3 | Projects CRUD API | 2026-04-29 |
+| #4 | UI/UX design and component system | 2026-04-29 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #4.
+None — ready to begin Issue #5.
 
 ---
 
@@ -34,6 +35,9 @@ None — ready to begin Issue #4.
 | #2 | `func start` will overwrite and encrypt `local.settings.json` if the JSON is invalid when it starts — always validate JSON before running. |
 | #3 | `new sql.Transaction(pool)` is the correct v4 pattern for transactions in mssql — `pool.transaction()` is not a function. |
 | #3 | A stale `func` process from a prior session will hold port 7071 and silently return 404 on all routes. Kill it with `Stop-Process` before restarting. |
+| #4 | Side panel chosen as split-view (not drawer) to preserve list context while viewing details. Bottom sheet on narrow viewports. |
+| #4 | Lottie chosen for scan animation — higher quality playful motion vs CSS; `scan-animation.json` to be committed to `src/assets/` when designed. CSS spinner fallback documented in spec. |
+| #4 | Sidebar expand triggered on hover (not click) with 100ms delay — prevents flicker on cursor pass-through without needing a click toggle. |
 
 ---
 
@@ -43,7 +47,7 @@ None — ready to begin Issue #4.
 | --- | --- | --- |
 | 2026-04-29 | UI/UX Design added as Issue #4, shifting old #4–#29 to #5–#30 (30 issues total) | Frontend issues need agreed design before implementation begins |
 | 2026-04-29 | Testing approach: `Invoke-WebRequest` (PowerShell) for backend, manual steps for frontend | User runs tests from PowerShell |
-| 2026-04-29 | Component library: TBD in Issue #4 | No existing preference; to be decided with full context |
+| 2026-04-29 | Component library: shadcn/ui + Tailwind CSS v4 | Fully customisable tokens, dark mode first-class, Radix primitives, React + Vite + TS exact fit |
 | 2026-04-29 | No auth in v1 | Internal tool only; Entra ID SSO noted as a future phase item |
 | 2026-04-29 | All project-specific env vars prefixed `RAPIDSCAN_` | Avoids collisions with other Azure projects sharing the same shell |
 
