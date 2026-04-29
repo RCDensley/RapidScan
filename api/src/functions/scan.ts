@@ -4,6 +4,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { getPool } from '../lib/db'
 import { upsertDependency } from '../lib/scan/upsert'
+import { runTaskGeneration } from '../lib/scan/task-generation'
 import { heavyComplete } from '../lib/ai/openai'
 import { HEAVY_SCAN_SYSTEM, buildHeavyScanUser } from '../lib/prompts/heavy-scan'
 import { ORPHAN_DETECTION_SYSTEM, buildOrphanDetectionUser, extractPatterns } from '../lib/prompts/orphan-detection'
@@ -166,6 +167,7 @@ async function runHeavyScan(
     .query('UPDATE projects SET last_scanned_at = GETUTCDATE() WHERE project_id = @projectId')
 
   await runOrphanDetection(pool, projectId, sourceBasePath, files, ctx)
+  await runTaskGeneration(pool, projectId, 'auto-followup', ctx)
 }
 
 async function startHeavyScan(req: HttpRequest, ctx: InvocationContext): Promise<HttpResponseInit> {
@@ -399,6 +401,27 @@ async function getDependencyDetail(req: HttpRequest, _ctx: InvocationContext): P
   return { status: 200, jsonBody: dep }
 }
 
+async function generateTasks(req: HttpRequest, ctx: InvocationContext): Promise<HttpResponseInit> {
+  const id = req.params.id
+  const pool = await getPool()
+
+  const projectExists = await pool.request()
+    .input('id', sql.UniqueIdentifier, id)
+    .query('SELECT 1 AS exists_flag FROM projects WHERE project_id = @id')
+
+  if (projectExists.recordset.length === 0) {
+    return { status: 404, jsonBody: { error: 'Project not found' } }
+  }
+
+  setImmediate(() => {
+    runTaskGeneration(pool, id, 'manual', ctx).catch(err => {
+      ctx.log(`generateTasks unhandled error: ${err instanceof Error ? err.message : String(err)}`)
+    })
+  })
+
+  return { status: 202, jsonBody: { message: 'Task generation started' } }
+}
+
 app.http('startHeavyScan', {
   methods: ['POST'],
   route: 'projects/{id}/scan/heavy',
@@ -425,4 +448,11 @@ app.http('getDependencyDetail', {
   route: 'projects/{id}/manifest/{dependencyId}',
   authLevel: 'anonymous',
   handler: getDependencyDetail,
+})
+
+app.http('generateTasks', {
+  methods: ['POST'],
+  route: 'projects/{id}/scan/generate-tasks',
+  authLevel: 'anonymous',
+  handler: generateTasks,
 })
