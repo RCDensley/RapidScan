@@ -184,3 +184,78 @@ app.http('ingestZip', {
   authLevel: 'anonymous',
   handler: ingestZip,
 })
+
+async function ingestLocal(req: HttpRequest, _ctx: InvocationContext): Promise<HttpResponseInit> {
+  const id = req.params.id
+
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return { status: 400, jsonBody: { error: 'Request body must be JSON' } }
+  }
+
+  const directoryPath = (body as Record<string, unknown>)?.directoryPath
+  if (typeof directoryPath !== 'string' || !directoryPath.trim()) {
+    return { status: 400, jsonBody: { error: 'directoryPath is required' } }
+  }
+
+  const pool = await getPool()
+  const projectRow = await pool.request()
+    .input('id', sql.UniqueIdentifier, id)
+    .query('SELECT input_type FROM projects WHERE project_id = @id')
+
+  if (projectRow.recordset.length === 0) {
+    return { status: 404, jsonBody: { error: 'Project not found' } }
+  }
+  if (projectRow.recordset[0].input_type !== 'local') {
+    return { status: 400, jsonBody: { error: 'Project is not a local project' } }
+  }
+
+  let stat: fs.Stats
+  try {
+    stat = fs.statSync(directoryPath)
+  } catch {
+    return { status: 400, jsonBody: { error: `Path does not exist or is not accessible: ${directoryPath}` } }
+  }
+
+  if (!stat.isDirectory()) {
+    return { status: 400, jsonBody: { error: `Path is not a directory: ${directoryPath}` } }
+  }
+
+  const manifest = walkDir(directoryPath, directoryPath)
+
+  const tx = new sql.Transaction(pool)
+  await tx.begin()
+  try {
+    await new sql.Request(tx)
+      .input('id', sql.UniqueIdentifier, id)
+      .query('DELETE FROM file_manifests WHERE project_id = @id')
+
+    for (const entry of manifest) {
+      await new sql.Request(tx)
+        .input('project_id', sql.UniqueIdentifier, id)
+        .input('file_path', sql.NVarChar(1000), entry.path)
+        .input('extension', sql.NVarChar(50), entry.extension || null)
+        .input('size_bytes', sql.BigInt, entry.sizeBytes)
+        .query(`
+          INSERT INTO file_manifests (project_id, file_path, extension, size_bytes)
+          VALUES (@project_id, @file_path, @extension, @size_bytes)
+        `)
+    }
+
+    await tx.commit()
+  } catch (dbErr) {
+    await tx.rollback()
+    throw dbErr
+  }
+
+  return { status: 200, jsonBody: { files: manifest, count: manifest.length } }
+}
+
+app.http('ingestLocal', {
+  methods: ['POST'],
+  route: 'projects/{id}/ingest/local',
+  authLevel: 'anonymous',
+  handler: ingestLocal,
+})

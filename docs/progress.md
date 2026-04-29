@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-04-29
 **Current phase:** Phase 1 — Foundation
-**Next issue:** #7 — GitHub repo ingestion
+**Next issue:** #8 — GitHub repo ingestion
 
 ---
 
@@ -17,12 +17,13 @@
 | #4 | UI/UX design and component system | 2026-04-29 |
 | #5 | Projects list, create, and detail page shell | 2026-04-29 |
 | #6 | Zip upload ingestion | 2026-04-29 |
+| #7 | Local directory scan ingestion | 2026-04-29 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #7.
+None — ready to begin Issue #8.
 
 ---
 
@@ -46,6 +47,8 @@ None — ready to begin Issue #7.
 | #6 | `unzipper.Extract({ path })` fires 'finish'/'close' before all disk writes complete — use `unzipper.Open.file()` + per-entry `stream().pipe(createWriteStream())` with individual 'finish' awaits instead. |
 | #6 | Azure SQL serverless tier can be unavailable on cold start; retry with a longer Connection Timeout (60s) and add the dev machine IP to the SQL firewall (resource group is rg-crashcam, server is crashcam). |
 | #6 | `busboy` is already present as a transitive dep of multer, but must be listed in api/package.json explicitly so `@types/busboy` resolves correctly. |
+| #7 | `func start` invoked directly bypasses `prestart: npm run build` — always run `npm run build` before restarting the host after TypeScript edits, or use `npm start` instead. |
+| #7 | A stale `func` process can hold port 7071 even after `Stop-Process -Name "func"` if the process was started under a different name. Use `netstat -ano \| findstr :7071` to find and kill the actual PID. |
 
 ---
 

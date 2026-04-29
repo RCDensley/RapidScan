@@ -62,4 +62,11 @@ export const projectsService = {
     }
     return res.json() as Promise<{ files: FileManifestEntry[]; count: number }>
   },
+
+  ingestLocal(id: string, directoryPath: string): Promise<{ files: FileManifestEntry[]; count: number }> {
+    return request<{ files: FileManifestEntry[]; count: number }>(`/api/projects/${id}/ingest/local`, {
+      method: 'POST',
+      body: JSON.stringify({ directoryPath }),
+    })
+  },
 }
