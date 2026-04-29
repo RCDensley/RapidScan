@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-04-30
 **Current phase:** Phase 4 — Scoring and Tasks
-**Next issue:** #16
+**Next issue:** #17
 
 ---
 
@@ -26,12 +26,13 @@
 | #13 | Manifest API | 2026-04-30 |
 | #14 | Manifest UI tab | 2026-04-30 |
 | #15 | Score calculation utility | 2026-04-30 |
+| #16 | Task generation pipeline | 2026-04-30 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #16.
+None — ready to begin Issue #17.
 
 ---
 
@@ -80,6 +81,8 @@ None — ready to begin Issue #16.
 | #13 | `getManifest` was previously returning `file_manifests` rows (the ingested file list). Issue #13 repurposed the route to return `dependencies` grouped by category with reference counts — the file-manifest data remains accessible via the `file_manifests` table but is no longer exposed via API (not needed by any frontend issue). |
 | #15 | Task `type = 'other'` has no corresponding column in `project_settings`, so it is hardcoded to weight 1 in `calculateScore`. This is intentional — "other" tasks are low-priority by definition and don't need a configurable weight. |
 | #14 | All dependencies show `status: 'unknown'` after a heavy scan — this is by design. The heavy scan prompt is a pure discovery/extraction tool and never writes status. Status is populated in Phase 5 by the light scan integrations (#20–23). Task generation (#16) will not produce tasks until Phase 5 runs. |
+| #16 | Re-triggering task generation can increase task count if an AI call failed silently in a previous run — the pipeline skips deps with an existing open task but retries those that were missed. This is correct retry behaviour, not a true duplication issue. |
+| #16 | `sql.NVarChar(sql.MAX)` works correctly in mssql v10 for inserting into NVARCHAR(MAX) columns (location_map, description, recommended_fix, suggested_tests). |
 
 ---
 
