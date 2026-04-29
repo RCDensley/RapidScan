@@ -69,4 +69,10 @@ export const projectsService = {
       body: JSON.stringify({ directoryPath }),
     })
   },
+
+  ingestGithub(id: string): Promise<{ files: FileManifestEntry[]; count: number }> {
+    return request<{ files: FileManifestEntry[]; count: number }>(`/api/projects/${id}/ingest/github`, {
+      method: 'POST',
+    })
+  },
 }

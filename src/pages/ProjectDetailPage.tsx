@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { CheckSquare, FolderOpen, FolderPlus, Layers, MoreHorizontal, Play, Upload } from 'lucide-react'
+import { CheckSquare, FolderOpen, FolderPlus, Github, Layers, MoreHorizontal, Play, Upload } from 'lucide-react'
 import { useAppContext } from '@/contexts/AppContext'
 import { ScanOverlay } from '@/components/ScanOverlay'
 import { SettingsTab } from '@/pages/SettingsTab'
@@ -93,6 +93,20 @@ export function ProjectDetailPage() {
     setUploadError(null)
     try {
       const result = await projectsService.ingestLocal(id, localPath.trim())
+      setFileCount(result.count)
+    } catch (err: unknown) {
+      setUploadError(err instanceof Error ? err.message : 'Ingestion failed')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  async function handleGithubIngest() {
+    if (!id) return
+    setUploading(true)
+    setUploadError(null)
+    try {
+      const result = await projectsService.ingestGithub(id)
       setFileCount(result.count)
     } catch (err: unknown) {
       setUploadError(err instanceof Error ? err.message : 'Ingestion failed')
@@ -235,6 +249,47 @@ export function ProjectDetailPage() {
       )}
 
       {project.input_type === 'local' && fileCount !== null && (
+        <div style={{
+          padding: '10px 36px',
+          borderBottom: '1px solid var(--border-subtle)',
+          background: 'var(--bg-surface)',
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          fontSize: 13,
+          color: 'var(--text-secondary)',
+        }}>
+          <span style={{ color: 'var(--accent-text)', fontWeight: 500 }}>{fileCount} files ready</span>
+          <span>·</span>
+          <span>Click <strong style={{ color: 'var(--text-primary)' }}>Run Scan</strong> to begin</span>
+        </div>
+      )}
+
+      {project.input_type === 'github' && fileCount === null && (
+        <div style={{
+          padding: '14px 36px',
+          borderBottom: '1px solid var(--border-subtle)',
+          background: 'var(--bg-surface)',
+          flexShrink: 0,
+        }}>
+          <div className="row" style={{ gap: 10 }}>
+            <Github size={14} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+            <button
+              className="btn btn-primary btn-sm"
+              disabled={uploading}
+              onClick={handleGithubIngest}
+            >
+              {uploading ? 'Fetching repo…' : 'Fetch repo and prepare scan'}
+            </button>
+            {uploadError && (
+              <span style={{ color: 'var(--color-danger)', fontSize: 12 }}>{uploadError}</span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {project.input_type === 'github' && fileCount !== null && (
         <div style={{
           padding: '10px 36px',
           borderBottom: '1px solid var(--border-subtle)',

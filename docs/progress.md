@@ -1,8 +1,8 @@
 # RapidScan - Development Progress
 
 **Last updated:** 2026-04-29
-**Current phase:** Phase 1 — Foundation
-**Next issue:** #8 — GitHub repo ingestion
+**Current phase:** Phase 2 — Ingestion
+**Next issue:** #9 — Heavy scan AI prompt design
 
 ---
 
@@ -18,12 +18,13 @@
 | #5 | Projects list, create, and detail page shell | 2026-04-29 |
 | #6 | Zip upload ingestion | 2026-04-29 |
 | #7 | Local directory scan ingestion | 2026-04-29 |
+| #8 | GitHub repo ingestion | 2026-04-29 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #8.
+None — ready to begin Issue #9.
 
 ---
 
@@ -49,6 +50,10 @@ None — ready to begin Issue #8.
 | #6 | `busboy` is already present as a transitive dep of multer, but must be listed in api/package.json explicitly so `@types/busboy` resolves correctly. |
 | #7 | `func start` invoked directly bypasses `prestart: npm run build` — always run `npm run build` before restarting the host after TypeScript edits, or use `npm start` instead. |
 | #7 | A stale `func` process can hold port 7071 even after `Stop-Process -Name "func"` if the process was started under a different name. Use `netstat -ano \| findstr :7071` to find and kill the actual PID. |
+| #8 | GitHub ingestion uses a stable per-project tempDir (`os.tmpdir()/rapidscan/{id}`) rather than a timestamped one, so the scan engine (Issue #11) can locate files without needing the path stored anywhere. The dir is cleared and rewritten on each ingest call. |
+| #8 | GitHub contents API only works for files ≤1 MB — safe here because `isExcluded` already filters those out using the tree API's size field before any content fetch. |
+| #8 | Sequential per-file content fetches scale to ~1,000 files within the Azure Functions default 5-min timeout (assuming ~200 ms/call). Repos significantly larger than that may time out. |
+| #8 | The zip ingestion (`ingest.ts`) cleans up its tempDir after building the manifest. When Issue #11 is implemented, that cleanup will need to be removed (or zip files stored persistently) so the scan engine can read file contents. Flag this as a known gap going into #11. |
 
 ---
 
