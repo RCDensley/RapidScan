@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-04-30
 **Current phase:** Phase 4 — Scoring and Tasks
-**Next issue:** #17
+**Next issue:** #18
 
 ---
 
@@ -27,12 +27,13 @@
 | #14 | Manifest UI tab | 2026-04-30 |
 | #15 | Score calculation utility | 2026-04-30 |
 | #16 | Task generation pipeline | 2026-04-30 |
+| #17 | Tasks API | 2026-04-30 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #17.
+None — ready to begin Issue #18.
 
 ---
 
@@ -83,6 +84,8 @@ None — ready to begin Issue #17.
 | #14 | All dependencies show `status: 'unknown'` after a heavy scan — this is by design. The heavy scan prompt is a pure discovery/extraction tool and never writes status. Status is populated in Phase 5 by the light scan integrations (#20–23). Task generation (#16) will not produce tasks until Phase 5 runs. |
 | #16 | Re-triggering task generation can increase task count if an AI call failed silently in a previous run — the pipeline skips deps with an existing open task but retries those that were missed. This is correct retry behaviour, not a true duplication issue. |
 | #16 | `sql.NVarChar(sql.MAX)` works correctly in mssql v10 for inserting into NVARCHAR(MAX) columns (location_map, description, recommended_fix, suggested_tests). |
+| #17 | `azure-functions-core-tools@4.9.0` crashes on startup with `Azure.Identity.VisualStudioCodeCredential` fatal error (0x8007000B — wrong native binary architecture). Fixed by updating to `4.10.0`. |
+| #17 | Default task list excludes `resolved` and `dismissed` by returning only `open`/`in-progress`. Passing `?status=dismissed` (or any valid status) overrides the default. Dynamic WHERE clause is safe because all filter values are validated against enum arrays before interpolation. |
 
 ---
 
