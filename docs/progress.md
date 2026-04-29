@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-04-29
 **Current phase:** Phase 1 — Foundation
-**Next issue:** #6 — Zip upload ingestion
+**Next issue:** #7 — GitHub repo ingestion
 
 ---
 
@@ -16,12 +16,13 @@
 | #3 | Projects CRUD API | 2026-04-29 |
 | #4 | UI/UX design and component system | 2026-04-29 |
 | #5 | Projects list, create, and detail page shell | 2026-04-29 |
+| #6 | Zip upload ingestion | 2026-04-29 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #6.
+None — ready to begin Issue #7.
 
 ---
 
@@ -42,6 +43,9 @@ None — ready to begin Issue #6.
 | #5 | `@tailwindcss/vite` is ESM-only; the project package.json must include `"type": "module"` or the Vite config bundler step fails at build time. |
 | #5 | The Design_Spec folder (added by user) is the authoritative reference for implementation — it takes precedence over docs/design/DESIGN_SPEC.md as the visual source of truth. Always check for reference files before starting a UI issue. |
 | #5 | CSS class-based component system (Design_Spec/styles.css) coexists fine with Tailwind v4 alongside it — no conflicts, use the named classes for components and Tailwind only for one-off layout utilities if needed. |
+| #6 | `unzipper.Extract({ path })` fires 'finish'/'close' before all disk writes complete — use `unzipper.Open.file()` + per-entry `stream().pipe(createWriteStream())` with individual 'finish' awaits instead. |
+| #6 | Azure SQL serverless tier can be unavailable on cold start; retry with a longer Connection Timeout (60s) and add the dev machine IP to the SQL firewall (resource group is rg-crashcam, server is crashcam). |
+| #6 | `busboy` is already present as a transitive dep of multer, but must be listed in api/package.json explicitly so `@types/busboy` resolves correctly. |
 
 ---
 

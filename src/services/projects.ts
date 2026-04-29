@@ -1,4 +1,4 @@
-import type { Project, InputType } from '@/types'
+import type { Project, InputType, FileManifestEntry } from '@/types'
 
 export interface CreateProjectPayload {
   name: string
@@ -50,5 +50,16 @@ export const projectsService = {
 
   delete(id: string): Promise<void> {
     return request<void>(`/api/projects/${id}`, { method: 'DELETE' })
+  },
+
+  async ingestZip(id: string, file: File): Promise<{ files: FileManifestEntry[]; count: number }> {
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await fetch(`/api/projects/${id}/ingest/zip`, { method: 'POST', body: formData })
+    if (!res.ok) {
+      const body = await res.text().catch(() => '')
+      throw new Error(body || `HTTP ${res.status}`)
+    }
+    return res.json() as Promise<{ files: FileManifestEntry[]; count: number }>
   },
 }

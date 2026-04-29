@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { CheckSquare, FolderPlus, Layers, MoreHorizontal, Play } from 'lucide-react'
+import { CheckSquare, FolderPlus, Layers, MoreHorizontal, Play, Upload } from 'lucide-react'
 import { useAppContext } from '@/contexts/AppContext'
 import { ScanOverlay } from '@/components/ScanOverlay'
 import { SettingsTab } from '@/pages/SettingsTab'
@@ -47,6 +47,11 @@ export function ProjectDetailPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [scanning, setScanning] = useState(false)
+  const [fileCount, setFileCount] = useState<number | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!id) { navigate('/'); return }
@@ -81,6 +86,22 @@ export function ProjectDetailPage() {
     )
   }
 
+  async function handleUpload() {
+    if (!selectedFile || !id) return
+    setUploading(true)
+    setUploadError(null)
+    try {
+      const result = await projectsService.ingestZip(id, selectedFile)
+      setFileCount(result.count)
+      setSelectedFile(null)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    } catch (err: unknown) {
+      setUploadError(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   return (
     <>
       <div className="page-header compact">
@@ -109,6 +130,61 @@ export function ProjectDetailPage() {
           </div>
         </div>
       </div>
+
+      {project.input_type === 'zip' && fileCount === null && (
+        <div style={{
+          padding: '14px 36px',
+          borderBottom: '1px solid var(--border-subtle)',
+          background: 'var(--bg-surface)',
+          flexShrink: 0,
+        }}>
+          <div className="row" style={{ gap: 10 }}>
+            <Upload size={14} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".zip"
+              style={{ display: 'none' }}
+              onChange={e => setSelectedFile(e.target.files?.[0] ?? null)}
+            />
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              {selectedFile ? selectedFile.name : 'Choose ZIP file'}
+            </button>
+            <button
+              className="btn btn-primary btn-sm"
+              disabled={!selectedFile || uploading}
+              onClick={handleUpload}
+            >
+              {uploading ? 'Uploading…' : 'Upload and prepare for scan'}
+            </button>
+            {uploadError && (
+              <span style={{ color: 'var(--color-danger)', fontSize: 12 }}>{uploadError}</span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {project.input_type === 'zip' && fileCount !== null && (
+        <div style={{
+          padding: '10px 36px',
+          borderBottom: '1px solid var(--border-subtle)',
+          background: 'var(--bg-surface)',
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          fontSize: 13,
+          color: 'var(--text-secondary)',
+        }}>
+          <span style={{ color: 'var(--accent-text)', fontWeight: 500 }}>{fileCount} files ready</span>
+          <span>·</span>
+          <span>Click <strong style={{ color: 'var(--text-primary)' }}>Run Scan</strong> to begin</span>
+        </div>
+      )}
 
       {activeTab === 'manifest' && (
         <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>

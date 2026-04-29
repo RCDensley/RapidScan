@@ -105,6 +105,17 @@ CREATE TABLE project_settings (
   CONSTRAINT uq_project_settings UNIQUE (project_id)
 );
 
+-- File Manifests (extracted file list for zip/local projects)
+CREATE TABLE file_manifests (
+  manifest_id   UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+  project_id    UNIQUEIDENTIFIER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+  file_path     NVARCHAR(1000) NOT NULL,
+  extension     NVARCHAR(50) NULL,
+  size_bytes    BIGINT NOT NULL,
+  created_at    DATETIME2 DEFAULT GETUTCDATE(),
+  CONSTRAINT uq_file_manifest UNIQUE (project_id, file_path)
+);
+
 -- Useful indexes
 CREATE INDEX ix_dependencies_project ON dependencies(project_id);
 CREATE INDEX ix_dependencies_status ON dependencies(project_id, status);
@@ -113,3 +124,4 @@ CREATE INDEX ix_chains_reference ON call_chains(reference_id);
 CREATE INDEX ix_tasks_project_status ON tasks(project_id, status);
 CREATE INDEX ix_tasks_score ON tasks(project_id, score DESC);
 CREATE INDEX ix_scan_history_project ON scan_history(project_id, started_at DESC);
+CREATE INDEX ix_file_manifests_project ON file_manifests(project_id);
