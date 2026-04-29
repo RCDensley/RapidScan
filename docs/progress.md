@@ -1,6 +1,6 @@
 # RapidScan - Development Progress
 
-**Last updated:** 2026-04-29
+**Last updated:** 2026-04-30
 **Current phase:** Phase 3 — Scan Engine
 **Next issue:** #13
 
@@ -69,6 +69,10 @@ None — ready to begin Issue #13.
 | #11 | DB progress updates fire on every file (not every N files) — acceptable because the per-file cost is dominated by the ~2–5 s AI round-trip. Revisit if files with no AI content (binary, skipped) are ever added to the loop. |
 | #12 | Orphan detection is a single AI call (not per-file), so `files_total`/`files_processed` are omitted from its `scan_history` row — both columns are nullable in the schema. |
 | #12 | Low-confidence orphan findings are filtered out in code before upsert (only `high`/`medium` pass through), rather than relying solely on the prompt instruction. Defence-in-depth. |
+| #12 | RAR support was decided in #5 but never wired up — `unzipper` throws silently on RAR magic bytes, producing a 500. Fixed by adding `node-unrar-js` (WASM-based, no system deps) with magic-byte detection to dispatch ZIP vs RAR. |
+| #12 | `lucide-react` no longer exports `Github` — removed at some point. Use `GitBranch` as the closest replacement for source-control context. |
+| #12 | GPT-5.4-pro (reasoning model) takes ~60s per file for heavy scan analysis. 25 files ≈ 25–40 minutes end-to-end. Progress bar shows 0 until the first AI call returns — this is expected, not a bug. |
+| #12 | SQL queries cannot be run directly in PowerShell (`SELECT` is parsed as `Select-Object`). Use Azure Data Studio or `sqlcmd` for ad-hoc DB checks. |
 
 ---
 
@@ -83,6 +87,7 @@ None — ready to begin Issue #13.
 | 2026-04-29 | All project-specific env vars prefixed `RAPIDSCAN_` | Avoids collisions with other Azure projects sharing the same shell |
 | 2026-04-29 | CSS implementation follows Design_Spec/ reference files (not just docs/design/DESIGN_SPEC.md) | User provided working reference implementation with exact look/feel; sidebar always present, CSS class system, CSS robot animation |
 | 2026-04-29 | RAR archive support added alongside ZIP | User confirmed need during #5 testing; same `input_type: 'zip'` used at API level since both are archives |
+| 2026-04-30 | RAR extraction implemented via `node-unrar-js` | Patch applied during #12 testing when upload of a real RAR file hit a 500. Magic-byte detection dispatches to ZIP or RAR extractor. |
 
 ---
 
