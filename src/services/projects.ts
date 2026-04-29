@@ -1,4 +1,4 @@
-import type { Project, InputType, FileManifestEntry, ScanHistoryEntry } from '@/types'
+import type { Project, InputType, FileManifestEntry, ScanHistoryEntry, ManifestResponse, DependencyDetail } from '@/types'
 
 export interface CreateProjectPayload {
   name: string
@@ -84,5 +84,13 @@ export const projectsService = {
 
   getScanHistory(id: string): Promise<ScanHistoryEntry[]> {
     return request<ScanHistoryEntry[]>(`/api/projects/${id}/scan-history`)
+  },
+
+  getManifest(id: string): Promise<ManifestResponse> {
+    return request<ManifestResponse>(`/api/projects/${id}/manifest`)
+  },
+
+  getDependencyDetail(id: string, depId: string): Promise<DependencyDetail> {
+    return request<DependencyDetail>(`/api/projects/${id}/manifest/${depId}`)
   },
 }

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { CheckSquare, FolderOpen, FolderPlus, GitBranch, Layers, MoreHorizontal, Play, Upload } from 'lucide-react'
+import { CheckSquare, FolderOpen, FolderPlus, GitBranch, MoreHorizontal, Play, Upload } from 'lucide-react'
 import { useAppContext } from '@/contexts/AppContext'
 import { ScanOverlay } from '@/components/ScanOverlay'
+import { ManifestTab } from '@/pages/ManifestTab'
 import { SettingsTab } from '@/pages/SettingsTab'
 import { projectsService } from '@/services/projects'
 import type { Project } from '@/types'
@@ -16,16 +17,6 @@ function formatRelativeTime(date: string | null): string {
   const hours = Math.floor(minutes / 60)
   if (hours < 24) return `${hours}h ago`
   return `${Math.floor(hours / 24)}d ago`
-}
-
-function ManifestPlaceholder() {
-  return (
-    <div className="empty">
-      <div className="empty-icon"><Layers size={28} /></div>
-      <p className="empty-h">No scan data</p>
-      <p className="empty-p">Run a scan to map this project's dependencies</p>
-    </div>
-  )
 }
 
 function TasksPlaceholder() {
@@ -50,6 +41,7 @@ export function ProjectDetailPage() {
   const [scanId, setScanId] = useState<string | null>(null)
   const [scanFilesTotal, setScanFilesTotal] = useState(0)
   const [scanError, setScanError] = useState<string | null>(null)
+  const [manifestRefreshKey, setManifestRefreshKey] = useState(0)
   const [fileCount, setFileCount] = useState<number | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
@@ -327,9 +319,11 @@ export function ProjectDetailPage() {
       )}
 
       {activeTab === 'manifest' && (
-        <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-          <ManifestPlaceholder />
-        </div>
+        <ManifestTab
+          projectId={id!}
+          lastScannedAt={project.last_scanned_at}
+          refreshKey={manifestRefreshKey}
+        />
       )}
       {activeTab === 'tasks' && (
         <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
@@ -340,7 +334,7 @@ export function ProjectDetailPage() {
 
       {scanning && scanId && (
         <ScanOverlay
-          onClose={() => { setScanning(false); setScanId(null) }}
+          onClose={() => { setScanning(false); setScanId(null); setManifestRefreshKey(k => k + 1) }}
           projectId={id!}
           scanId={scanId}
           filesTotal={scanFilesTotal}

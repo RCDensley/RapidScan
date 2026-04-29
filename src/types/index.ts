@@ -120,6 +120,52 @@ export interface ProjectSettings {
   complexity_high: number
 }
 
+export interface ManifestDepRow {
+  dependency_id: string
+  category: string
+  name: string
+  current_version: string | null
+  latest_version: string | null
+  status: string
+  first_detected_at: string
+  last_updated_at: string
+  reference_count: number
+}
+
+export interface ManifestResponse {
+  categories: Record<string, { count: number; dependencies: ManifestDepRow[] }>
+  total: number
+}
+
+export interface DependencyDetailCallChain {
+  caller_function: string | null
+  caller_file: string | null
+  caller_line: number | null
+  chain_depth: number
+  confidence: string
+}
+
+export interface DependencyDetailReference {
+  reference_id: string
+  file_path: string | null
+  line_number: number | null
+  parent_function: string | null
+  parent_class: string | null
+  call_chain: DependencyDetailCallChain[]
+}
+
+export interface DependencyDetail {
+  dependency_id: string
+  category: string
+  name: string
+  current_version: string | null
+  latest_version: string | null
+  status: string
+  first_detected_at: string
+  last_updated_at: string
+  references: DependencyDetailReference[]
+}
+
 export interface FileManifestEntry {
   path: string
   extension: string
