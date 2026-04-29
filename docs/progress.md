@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-04-29
 **Current phase:** Phase 1 — Foundation
-**Next issue:** #5 — Projects list page (UI)
+**Next issue:** #6 — Zip upload ingestion
 
 ---
 
@@ -15,12 +15,13 @@
 | #2 | Provision Azure SQL and apply schema | 2026-04-29 |
 | #3 | Projects CRUD API | 2026-04-29 |
 | #4 | UI/UX design and component system | 2026-04-29 |
+| #5 | Projects list, create, and detail page shell | 2026-04-29 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #5.
+None — ready to begin Issue #6.
 
 ---
 
@@ -38,6 +39,9 @@ None — ready to begin Issue #5.
 | #4 | Side panel chosen as split-view (not drawer) to preserve list context while viewing details. Bottom sheet on narrow viewports. |
 | #4 | Lottie chosen for scan animation — higher quality playful motion vs CSS; `scan-animation.json` to be committed to `src/assets/` when designed. CSS spinner fallback documented in spec. |
 | #4 | Sidebar expand triggered on hover (not click) with 100ms delay — prevents flicker on cursor pass-through without needing a click toggle. |
+| #5 | `@tailwindcss/vite` is ESM-only; the project package.json must include `"type": "module"` or the Vite config bundler step fails at build time. |
+| #5 | The Design_Spec folder (added by user) is the authoritative reference for implementation — it takes precedence over docs/design/DESIGN_SPEC.md as the visual source of truth. Always check for reference files before starting a UI issue. |
+| #5 | CSS class-based component system (Design_Spec/styles.css) coexists fine with Tailwind v4 alongside it — no conflicts, use the named classes for components and Tailwind only for one-off layout utilities if needed. |
 
 ---
 
@@ -50,6 +54,8 @@ None — ready to begin Issue #5.
 | 2026-04-29 | Component library: shadcn/ui + Tailwind CSS v4 | Fully customisable tokens, dark mode first-class, Radix primitives, React + Vite + TS exact fit |
 | 2026-04-29 | No auth in v1 | Internal tool only; Entra ID SSO noted as a future phase item |
 | 2026-04-29 | All project-specific env vars prefixed `RAPIDSCAN_` | Avoids collisions with other Azure projects sharing the same shell |
+| 2026-04-29 | CSS implementation follows Design_Spec/ reference files (not just docs/design/DESIGN_SPEC.md) | User provided working reference implementation with exact look/feel; sidebar always present, CSS class system, CSS robot animation |
+| 2026-04-29 | RAR archive support added alongside ZIP | User confirmed need during #5 testing; same `input_type: 'zip'` used at API level since both are archives |
 
 ---
 
@@ -58,3 +64,4 @@ None — ready to begin Issue #5.
 | Date | Issue worked | Forward change made | Issues updated |
 | --- | --- | --- | --- |
 | 2026-04-29 | #1 | All project env vars prefixed `RAPIDSCAN_` (e.g. `RAPIDSCAN_SQL_CONNECTION_STRING`) | #2, #6, #7, #8, #9 |
+| 2026-04-29 | #5 | Settings tab UI shell fully implemented (all 5 sections: GitHub connection, scan config, issue creation, scoring weights, scoring explanation). API wiring, PAT validation, and save/reset functionality still required. | #25 — remove UI layout work from scope, focus remaining work on `PATCH /api/projects/:id/settings` integration and GitHub PAT test button |
