@@ -13,12 +13,13 @@
 | Setup | Repo initialised, CLAUDE.md, ISSUES.md (30 issues), docs/progress.md, all GitHub issues created with labels and tests | 2026-04-29 |
 | #1 | Initialise Azure SWA project structure | 2026-04-29 |
 | #2 | Provision Azure SQL and apply schema | 2026-04-29 |
+| #3 | Projects CRUD API | 2026-04-29 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #3.
+None — ready to begin Issue #4.
 
 ---
 
@@ -31,6 +32,8 @@ None — ready to begin Issue #3.
 | #2 | `tasks.dependency_id ON DELETE SET NULL` causes a multiple cascade paths error in Azure SQL. Fixed to `ON DELETE NO ACTION` — safe because the project cascade already deletes all tasks before the dependency FK is evaluated. |
 | #2 | `Authentication="Active Directory Default"` in a connection string is .NET-specific and not supported by mssql/tedious. Use contained database users with SQL auth (`User Id` / `Password`) for local dev. |
 | #2 | `func start` will overwrite and encrypt `local.settings.json` if the JSON is invalid when it starts — always validate JSON before running. |
+| #3 | `new sql.Transaction(pool)` is the correct v4 pattern for transactions in mssql — `pool.transaction()` is not a function. |
+| #3 | A stale `func` process from a prior session will hold port 7071 and silently return 404 on all routes. Kill it with `Stop-Process` before restarting. |
 
 ---
 
