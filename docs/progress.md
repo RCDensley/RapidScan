@@ -1,8 +1,8 @@
 # RapidScan - Development Progress
 
 **Last updated:** 2026-04-29
-**Current phase:** Phase 2 — Ingestion
-**Next issue:** #9 — Heavy scan AI prompt design
+**Current phase:** Phase 3 — Scan Engine
+**Next issue:** #10 — Light scan monitoring integration
 
 ---
 
@@ -19,6 +19,7 @@
 | #6 | Zip upload ingestion | 2026-04-29 |
 | #7 | Local directory scan ingestion | 2026-04-29 |
 | #8 | GitHub repo ingestion | 2026-04-29 |
+| #9 | Heavy scan AI prompt design | 2026-04-29 |
 
 ---
 
@@ -52,6 +53,9 @@ None — ready to begin Issue #9.
 | #7 | A stale `func` process can hold port 7071 even after `Stop-Process -Name "func"` if the process was started under a different name. Use `netstat -ano \| findstr :7071` to find and kill the actual PID. |
 | #8 | GitHub ingestion uses a stable per-project tempDir (`os.tmpdir()/rapidscan/{id}`) rather than a timestamped one, so the scan engine (Issue #11) can locate files without needing the path stored anywhere. The dir is cleared and rewritten on each ingest call. |
 | #8 | GitHub contents API only works for files ≤1 MB — safe here because `isExcluded` already filters those out using the tree API's size field before any content fetch. |
+| #9 | Azure AI Foundry Responses API (`/openai/responses`) uses `input` (not `messages`) and `max_output_tokens` (not `max_tokens`). Auth header is `api-key`, not `Authorization: Bearer`. |
+| #9 | The Foundry non-streaming response `output` array includes a `reasoning` item before the `message` item when using a reasoning model (gpt-5.4-pro). Must find by `type === 'message'`, not `output[0]`. |
+| #9 | `func start` runs from the `api/` directory, so file paths passed to the debug endpoint resolve relative to there (e.g. `package.json` not `api/package.json`). |
 | #8 | Sequential per-file content fetches scale to ~1,000 files within the Azure Functions default 5-min timeout (assuming ~200 ms/call). Repos significantly larger than that may time out. |
 | #8 | The zip ingestion (`ingest.ts`) cleans up its tempDir after building the manifest. When Issue #11 is implemented, that cleanup will need to be removed (or zip files stored persistently) so the scan engine can read file contents. Flag this as a known gap going into #11. |
 
