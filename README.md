@@ -1,6 +1,6 @@
 # RapidScan
 
-**Part of the Rapid Circle internal tooling suite. Companion product to Rapid Build.**
+**Easing the anxiety of custom application adoption.**
 
 RapidScan performs deep, deliberate dependency scanning and ongoing health monitoring for vibe-coded and AI-assisted applications. It discovers every dependency across six manifest categories, maps exactly where each one lives in the codebase, traces call chains, and monitors for vulnerabilities, deprecations, and version updates.
 
@@ -8,10 +8,10 @@ RapidScan performs deep, deliberate dependency scanning and ongoing health monit
 
 ## What it does
 
-- Exhaustive sequential file-by-file scan using GPT-5.4-pro
+- Exhaustive sequential file-by-file scan using a context heacy AI model
 - Builds a living manifest of npm packages, Azure SDKs, AI models, third-party APIs, Azure services, and orphaned code
 - Maps each dependency to its exact file, line, parent function, and call chain
-- Generates one task per unique dependency (deduplicated automatically across files) with severity, type, complexity, and remediation suggestions via GPT-5.4-mini
+- Generates one task per unique dependency (deduplicated automatically across files) with severity, type, complexity, and remediation suggestions via a light weight model
 - Runs ongoing light-model monitoring for CVEs, deprecations, and new versions
 - Creates in-app tasks for every finding, and conditionally raises GitHub issues above a configurable score threshold
 
@@ -23,9 +23,9 @@ Scans are designed to run overnight and be reviewed in the morning. This is not 
 
 Each scan run is a sequence of three passes:
 
-1. **Heavy scan (discovery)** - GPT-5.4-pro reads every code file sequentially and writes findings to the manifest
+1. **Heavy scan (discovery)** - GPT-5.4-pro (or similar) reads every code file sequentially and writes findings to the manifest
 2. **Orphan detection (optional)** - separate AI pass to identify dead files and unused exports (toggleable per project)
-3. **Task generation** - GPT-5.4-mini takes each unique dependency and produces a scored, actionable task with remediation suggestions
+3. **Task generation** - GPT-5.4-mini (or similar) takes each unique dependency and produces a scored, actionable task with remediation suggestions
 
 Light scan monitoring runs against the existing manifest on a manual trigger (or scheduled cadence), feeding any status changes back through the task generation pass.
 
@@ -94,30 +94,6 @@ cd api && npm run start
 # Start frontend (separate terminal)
 npm run dev
 ```
-
-### Environment variables
-
-Create `api/local.settings.json`:
-
-```json
-{
-  "IsEncrypted": false,
-  "Values": {
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "node",
-    "AZURE_SQL_CONNECTION_STRING": "",
-    "AZURE_OPENAI_ENDPOINT": "",
-    "AZURE_OPENAI_KEY": "",
-    "AZURE_OPENAI_HEAVY_DEPLOYMENT": "gpt-5.4-pro",
-    "AZURE_OPENAI_LIGHT_DEPLOYMENT": "gpt-5.4-mini"
-  }
-}
-```
-
-GitHub PAT is stored per-project in the database (in `project_settings.github_pat`), not as an environment variable.
-
----
-
 ## Documentation
 
 See `docs/PRD.md` for the full product requirements document.  
