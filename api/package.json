@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "start": "func start",
+    "start": "node node_modules/azure-functions-core-tools/lib/main.js start",
     "prestart": "npm run build",
     "test": "jest"
   },
@@ -33,6 +33,7 @@
     "@types/mssql": "^9.0.0",
     "@types/node": "^18.0.0",
     "@types/unzipper": "^0.10.0",
+    "azure-functions-core-tools": "^4.9.0",
     "jest": "^30.3.0",
     "ts-jest": "^29.4.9",
     "typescript": "^5.0.0"

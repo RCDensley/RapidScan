@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-04-30
 **Current phase:** Phase 3 — Scan Engine
-**Next issue:** #13
+**Next issue:** #14
 
 ---
 
@@ -23,6 +23,7 @@
 | #10 | Dependency upsert logic | 2026-04-29 |
 | #11 | Scan orchestration loop | 2026-04-29 |
 | #12 | Orphan detection pass | 2026-04-29 |
+| #13 | Manifest API | 2026-04-30 |
 
 ---
 
@@ -73,6 +74,8 @@ None — ready to begin Issue #13.
 | #12 | `lucide-react` no longer exports `Github` — removed at some point. Use `GitBranch` as the closest replacement for source-control context. |
 | #12 | GPT-5.4-pro (reasoning model) takes ~60s per file for heavy scan analysis. 25 files ≈ 25–40 minutes end-to-end. Progress bar shows 0 until the first AI call returns — this is expected, not a bug. |
 | #12 | SQL queries cannot be run directly in PowerShell (`SELECT` is parsed as `Select-Object`). Use Azure Data Studio or `sqlcmd` for ad-hoc DB checks. |
+| #13 | The MSI-installed Azure Functions Core Tools (v4.9.0) fails with "Could not load file or assembly 'Yarp.ReverseProxy, Version=2.0.1.0'" due to a version mismatch between the installed DLL (June 2023) and what the binary expects. Workaround: install `azure-functions-core-tools@4` as a local devDependency and change the `start` script to `node node_modules/azure-functions-core-tools/lib/main.js start` — this uses the local bin with its own matching Yarp DLL. |
+| #13 | `getManifest` was previously returning `file_manifests` rows (the ingested file list). Issue #13 repurposed the route to return `dependencies` grouped by category with reference counts — the file-manifest data remains accessible via the `file_manifests` table but is no longer exposed via API (not needed by any frontend issue). |
 
 ---
 

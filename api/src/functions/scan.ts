@@ -267,14 +267,136 @@ async function getManifest(req: HttpRequest, _ctx: InvocationContext): Promise<H
 
   const result = await pool.request()
     .input('id', sql.UniqueIdentifier, id)
-    .query(`
-      SELECT file_path, extension, size_bytes
-      FROM file_manifests
-      WHERE project_id = @id
-      ORDER BY file_path
+    .query<{
+      dependency_id: string
+      category: string
+      name: string
+      current_version: string | null
+      latest_version: string | null
+      status: string
+      first_detected_at: Date
+      last_updated_at: Date
+      reference_count: number
+    }>(`
+      SELECT
+        d.dependency_id,
+        d.category,
+        d.name,
+        d.current_version,
+        d.latest_version,
+        d.status,
+        d.first_detected_at,
+        d.last_updated_at,
+        COUNT(dr.reference_id) AS reference_count
+      FROM dependencies d
+      LEFT JOIN dependency_references dr ON d.dependency_id = dr.dependency_id
+      WHERE d.project_id = @id
+      GROUP BY d.dependency_id, d.category, d.name, d.current_version, d.latest_version,
+               d.status, d.first_detected_at, d.last_updated_at
+      ORDER BY d.category, d.name
     `)
 
-  return { status: 200, jsonBody: { files: result.recordset, count: result.recordset.length } }
+  type DepRow = typeof result.recordset[number]
+  type CategoryGroup = { count: number; dependencies: DepRow[] }
+  const categories: Record<string, CategoryGroup> = {}
+  for (const row of result.recordset) {
+    if (!categories[row.category]) categories[row.category] = { count: 0, dependencies: [] }
+    categories[row.category].dependencies.push(row)
+    categories[row.category].count++
+  }
+
+  return { status: 200, jsonBody: { categories, total: result.recordset.length } }
+}
+
+async function getDependencyDetail(req: HttpRequest, _ctx: InvocationContext): Promise<HttpResponseInit> {
+  const { id, dependencyId } = req.params
+  const pool = await getPool()
+
+  const depResult = await pool.request()
+    .input('depId', sql.UniqueIdentifier, dependencyId)
+    .input('projectId', sql.UniqueIdentifier, id)
+    .query<{
+      dependency_id: string
+      category: string
+      name: string
+      current_version: string | null
+      latest_version: string | null
+      status: string
+      first_detected_at: Date
+      last_updated_at: Date
+      reference_id: string | null
+      file_path: string | null
+      line_number: number | null
+      parent_function: string | null
+      parent_class: string | null
+    }>(`
+      SELECT
+        d.dependency_id, d.category, d.name, d.current_version, d.latest_version,
+        d.status, d.first_detected_at, d.last_updated_at,
+        dr.reference_id, dr.file_path, dr.line_number, dr.parent_function, dr.parent_class
+      FROM dependencies d
+      LEFT JOIN dependency_references dr ON d.dependency_id = dr.dependency_id
+      WHERE d.dependency_id = @depId AND d.project_id = @projectId
+      ORDER BY dr.file_path, dr.line_number
+    `)
+
+  if (depResult.recordset.length === 0) {
+    return { status: 404, jsonBody: { error: 'Dependency not found' } }
+  }
+
+  const chainResult = await pool.request()
+    .input('depId', sql.UniqueIdentifier, dependencyId)
+    .query<{
+      reference_id: string
+      caller_function: string | null
+      caller_file: string | null
+      caller_line: number | null
+      chain_depth: number
+      confidence: string
+    }>(`
+      SELECT cc.reference_id, cc.caller_function, cc.caller_file, cc.caller_line, cc.chain_depth, cc.confidence
+      FROM call_chains cc
+      INNER JOIN dependency_references dr ON cc.reference_id = dr.reference_id
+      WHERE dr.dependency_id = @depId
+      ORDER BY cc.reference_id, cc.chain_depth
+    `)
+
+  type ChainRow = typeof chainResult.recordset[number]
+  const chainsByRef: Record<string, ChainRow[]> = {}
+  for (const chain of chainResult.recordset) {
+    if (!chainsByRef[chain.reference_id]) chainsByRef[chain.reference_id] = []
+    chainsByRef[chain.reference_id].push(chain)
+  }
+
+  const first = depResult.recordset[0]
+  const dep = {
+    dependency_id: first.dependency_id,
+    category: first.category,
+    name: first.name,
+    current_version: first.current_version,
+    latest_version: first.latest_version,
+    status: first.status,
+    first_detected_at: first.first_detected_at,
+    last_updated_at: first.last_updated_at,
+    references: depResult.recordset
+      .filter(r => r.reference_id !== null)
+      .map(r => ({
+        reference_id: r.reference_id,
+        file_path: r.file_path,
+        line_number: r.line_number,
+        parent_function: r.parent_function,
+        parent_class: r.parent_class,
+        call_chain: (chainsByRef[r.reference_id!] ?? []).map(c => ({
+          caller_function: c.caller_function,
+          caller_file: c.caller_file,
+          caller_line: c.caller_line,
+          chain_depth: c.chain_depth,
+          confidence: c.confidence,
+        })),
+      })),
+  }
+
+  return { status: 200, jsonBody: dep }
 }
 
 app.http('startHeavyScan', {
@@ -296,4 +418,11 @@ app.http('getManifest', {
   route: 'projects/{id}/manifest',
   authLevel: 'anonymous',
   handler: getManifest,
+})
+
+app.http('getDependencyDetail', {
+  methods: ['GET'],
+  route: 'projects/{id}/manifest/{dependencyId}',
+  authLevel: 'anonymous',
+  handler: getDependencyDetail,
 })
