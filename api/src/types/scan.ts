@@ -1,4 +1,4 @@
-export type DependencyCategory = 'npm' | 'azure-sdk' | 'ai-model' | 'third-party-api' | 'azure-service' | 'other'
+export type DependencyCategory = 'npm' | 'azure-sdk' | 'ai-model' | 'third-party-api' | 'azure-service' | 'orphaned' | 'other'
 export type Confidence = 'high' | 'medium' | 'low'
 
 export interface CallChainEntry {
@@ -20,3 +20,12 @@ export interface DependencyFinding {
 }
 
 export type HeavyScanResult = DependencyFinding[]
+
+export interface OrphanFinding {
+  type: 'file' | 'function'
+  path: string
+  functionName?: string
+  lineNumber?: number | null
+  confidence: Confidence
+  reason: string
+}

@@ -6,7 +6,101 @@ import { getPool } from '../lib/db'
 import { upsertDependency } from '../lib/scan/upsert'
 import { heavyComplete } from '../lib/ai/openai'
 import { HEAVY_SCAN_SYSTEM, buildHeavyScanUser } from '../lib/prompts/heavy-scan'
-import type { DependencyFinding } from '../types/scan'
+import { ORPHAN_DETECTION_SYSTEM, buildOrphanDetectionUser, extractPatterns } from '../lib/prompts/orphan-detection'
+import type { DependencyFinding, OrphanFinding } from '../types/scan'
+
+async function runOrphanDetection(
+  pool: sql.ConnectionPool,
+  projectId: string,
+  sourceBasePath: string,
+  files: Array<{ file_path: string }>,
+  ctx: InvocationContext
+): Promise<void> {
+  const settingResult = await pool.request()
+    .input('projectId', sql.UniqueIdentifier, projectId)
+    .query<{ detect_orphaned_code: boolean }>(
+      'SELECT detect_orphaned_code FROM project_settings WHERE project_id = @projectId'
+    )
+
+  if (settingResult.recordset.length === 0 || !settingResult.recordset[0].detect_orphaned_code) {
+    ctx.log('Orphan detection skipped (setting disabled)')
+    return
+  }
+
+  const scanRecord = await pool.request()
+    .input('projectId', sql.UniqueIdentifier, projectId)
+    .query<{ scan_id: string }>(`
+      INSERT INTO scan_history (project_id, scan_type, triggered_by)
+      OUTPUT inserted.scan_id
+      VALUES (@projectId, 'orphan-detection', 'auto-followup')
+    `)
+
+  const scanId = scanRecord.recordset[0].scan_id
+
+  try {
+    const filePatterns: Array<{ path: string; patterns: string[] }> = []
+    for (const file of files) {
+      const fullPath = path.join(sourceBasePath, file.file_path)
+      try {
+        const content = fs.readFileSync(fullPath, 'utf-8')
+        filePatterns.push({ path: file.file_path, patterns: extractPatterns(content) })
+      } catch {
+        filePatterns.push({ path: file.file_path, patterns: [] })
+      }
+    }
+
+    const filePaths = files.map(f => f.file_path)
+    const userMsg = buildOrphanDetectionUser(filePaths, filePatterns)
+    const rawJson = await heavyComplete(ORPHAN_DETECTION_SYSTEM, userMsg)
+
+    let orphans: OrphanFinding[] = []
+    try {
+      const parsed: unknown = JSON.parse(rawJson)
+      if (Array.isArray(parsed)) orphans = parsed as OrphanFinding[]
+    } catch {
+      ctx.log('JSON parse error in orphan detection, treating as no findings')
+    }
+
+    const confident = orphans.filter(o => o.confidence === 'high' || o.confidence === 'medium')
+    let findingsCount = 0
+
+    for (const orphan of confident) {
+      const name = orphan.type === 'file' ? orphan.path : `${orphan.path}::${orphan.functionName}`
+      const finding: DependencyFinding = {
+        category: 'orphaned',
+        name,
+        version: null,
+        lineNumber: orphan.type === 'function' ? (orphan.lineNumber ?? null) : null,
+        parentFunction: orphan.type === 'function' ? (orphan.functionName ?? null) : null,
+        parentClass: null,
+        callChain: [],
+      }
+      await upsertDependency(pool, projectId, orphan.path, finding)
+      findingsCount++
+    }
+
+    await pool.request()
+      .input('scanId', sql.UniqueIdentifier, scanId)
+      .input('findingsCount', sql.Int, findingsCount)
+      .query(`
+        UPDATE scan_history
+        SET completed_at = GETUTCDATE(), findings_count = @findingsCount
+        WHERE scan_id = @scanId
+      `)
+  } catch (err) {
+    ctx.log(`Orphan detection failed: ${err instanceof Error ? err.message : String(err)}`)
+    try {
+      await pool.request()
+        .input('scanId', sql.UniqueIdentifier, scanId)
+        .input('errorMessage', sql.NVarChar(4000), err instanceof Error ? err.message : String(err))
+        .query(`
+          UPDATE scan_history
+          SET error_message = @errorMessage, completed_at = GETUTCDATE()
+          WHERE scan_id = @scanId
+        `)
+    } catch { /* best effort */ }
+  }
+}
 
 async function runHeavyScan(
   pool: sql.ConnectionPool,
@@ -70,6 +164,8 @@ async function runHeavyScan(
   await pool.request()
     .input('projectId', sql.UniqueIdentifier, projectId)
     .query('UPDATE projects SET last_scanned_at = GETUTCDATE() WHERE project_id = @projectId')
+
+  await runOrphanDetection(pool, projectId, sourceBasePath, files, ctx)
 }
 
 async function startHeavyScan(req: HttpRequest, ctx: InvocationContext): Promise<HttpResponseInit> {

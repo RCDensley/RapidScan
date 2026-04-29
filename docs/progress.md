@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-04-29
 **Current phase:** Phase 3 — Scan Engine
-**Next issue:** #12
+**Next issue:** #13
 
 ---
 
@@ -22,12 +22,13 @@
 | #9 | Heavy scan AI prompt design | 2026-04-29 |
 | #10 | Dependency upsert logic | 2026-04-29 |
 | #11 | Scan orchestration loop | 2026-04-29 |
+| #12 | Orphan detection pass | 2026-04-29 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #12.
+None — ready to begin Issue #13.
 
 ---
 
@@ -66,6 +67,8 @@ None — ready to begin Issue #12.
 | #11 | The scan engine needs a base directory to resolve relative `file_manifests.file_path` values. Added `source_path NVARCHAR(1000) NULL` to the `projects` table; all three ingest handlers now save it after a successful ingest. Run `ALTER TABLE projects ADD source_path NVARCHAR(1000) NULL` on existing databases. |
 | #11 | Zip ingestion now uses the same stable tempDir pattern as GitHub ingestion (`os.tmpdir()/rapidscan/{id}`), clearing and re-extracting on each ingest. The old timestamped-and-deleted pattern was incompatible with the scan engine needing to read files after the ingest response. |
 | #11 | DB progress updates fire on every file (not every N files) — acceptable because the per-file cost is dominated by the ~2–5 s AI round-trip. Revisit if files with no AI content (binary, skipped) are ever added to the loop. |
+| #12 | Orphan detection is a single AI call (not per-file), so `files_total`/`files_processed` are omitted from its `scan_history` row — both columns are nullable in the schema. |
+| #12 | Low-confidence orphan findings are filtered out in code before upsert (only `high`/`medium` pass through), rather than relying solely on the prompt instruction. Defence-in-depth. |
 
 ---
 
