@@ -18,12 +18,14 @@ Forward changes are permitted when implementation reveals a genuine need for the
 - Update those issues (scope, acceptance criteria, or remove steps that are now done)
 - Document the change and reasoning in `docs/progress.md` under "Forward Changes Log"
 
-### Testing
+### Testing and committing
 Every issue must end with a test. There are two acceptable forms:
 - **Automated:** run unit tests or API calls and include the output as proof
 - **Manual:** provide step-by-step instructions for the user to verify the acceptance criteria
 
 Use `Invoke-WebRequest` (PowerShell) for all HTTP test commands, not `curl`.
+
+Once tests are validated, commit all changes and push to `origin master`. The commit message should reference the issue number and title.
 
 ### Progress tracking
 Update `docs/progress.md` at the end of every session with:

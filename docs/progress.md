@@ -8,13 +8,15 @@
 
 ## Completed Issues
 
-None yet.
+| Issue | Title | Date |
+|-------|-------|------|
+| Setup | Repo initialised, CLAUDE.md, ISSUES.md (30 issues), docs/progress.md, all GitHub issues created with labels and tests | 2026-04-29 |
 
 ---
 
 ## In Progress
 
-None.
+None — ready to begin Issue #1.
 
 ---
 
