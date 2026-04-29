@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-04-29
 **Current phase:** Phase 3 — Scan Engine
-**Next issue:** #10 — Light scan monitoring integration
+**Next issue:** #11 — Scan orchestration loop
 
 ---
 
@@ -20,12 +20,13 @@
 | #7 | Local directory scan ingestion | 2026-04-29 |
 | #8 | GitHub repo ingestion | 2026-04-29 |
 | #9 | Heavy scan AI prompt design | 2026-04-29 |
+| #10 | Dependency upsert logic | 2026-04-29 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #9.
+None — ready to begin Issue #11.
 
 ---
 
@@ -56,6 +57,9 @@ None — ready to begin Issue #9.
 | #9 | Azure AI Foundry Responses API (`/openai/responses`) uses `input` (not `messages`) and `max_output_tokens` (not `max_tokens`). Auth header is `api-key`, not `Authorization: Bearer`. |
 | #9 | The Foundry non-streaming response `output` array includes a `reasoning` item before the `message` item when using a reasoning model (gpt-5.4-pro). Must find by `type === 'message'`, not `output[0]`. |
 | #9 | `func start` runs from the `api/` directory, so file paths passed to the debug endpoint resolve relative to there (e.g. `package.json` not `api/package.json`). |
+| #10 | Jest 30 renamed `--testPathPattern` to `--testPathPatterns` (plural). The GitHub issue test command uses the old name and will error — use `npm test -- --testPathPatterns=upsert` instead. |
+| #10 | ts-jest 29.x supports Jest 30.x via peer dependency range `^29.0.0 \|\| ^30.0.0` — no version downgrade needed. |
+| #10 | The mssql fluent API (`pool.request().input(...).query(...)`) mocks cleanly with `{ input: jest.fn().mockReturnThis(), query: mockQueue }` — a single shared mockRequest per pool.request() call works because each SQL operation reads the next queued `mockResolvedValueOnce` response. |
 | #8 | Sequential per-file content fetches scale to ~1,000 files within the Azure Functions default 5-min timeout (assuming ~200 ms/call). Repos significantly larger than that may time out. |
 | #8 | The zip ingestion (`ingest.ts`) cleans up its tempDir after building the manifest. When Issue #11 is implemented, that cleanup will need to be removed (or zip files stored persistently) so the scan engine can read file contents. Flag this as a known gap going into #11. |
 
