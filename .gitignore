@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.local
+local.settings.json
+*.js.map
+.azure/
+.vscode/
+*.log
+uploads/
+extracted/

@@ -1,0 +1,25 @@
+{
+  "name": "rapidscan-api",
+  "version": "1.0.0",
+  "description": "RapidScan Azure Functions API",
+  "main": "dist/src/functions/*.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "start": "func start",
+    "prestart": "npm run build"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.0.0",
+    "@octokit/rest": "^20.0.0",
+    "mssql": "^10.0.0",
+    "openai": "^4.0.0",
+    "unzipper": "^0.10.0",
+    "multer": "^1.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/mssql": "^9.0.0",
+    "typescript": "^5.0.0"
+  }
+}
