@@ -6,6 +6,7 @@ import * as os from 'os'
 import { Readable } from 'stream'
 import Busboy from 'busboy'
 import * as unzipper from 'unzipper'
+import { createExtractorFromData } from 'node-unrar-js'
 import { getPool } from '../lib/db'
 
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024
@@ -69,6 +70,42 @@ function walkDir(dir: string, rootDir: string): Array<{ path: string; extension:
   return manifest
 }
 
+function isRarBuffer(buf: Buffer): boolean {
+  return buf.length >= 4 && buf[0] === 0x52 && buf[1] === 0x61 && buf[2] === 0x72 && buf[3] === 0x21
+}
+
+async function extractZip(zipBuffer: Buffer, tempDir: string): Promise<void> {
+  const zipPath = path.join(tempDir, '_upload.zip')
+  fs.writeFileSync(zipPath, zipBuffer)
+  const directory = await unzipper.Open.file(zipPath)
+  for (const file of directory.files) {
+    if (file.type !== 'File') continue
+    const outPath = path.join(tempDir, file.path)
+    await fs.promises.mkdir(path.dirname(outPath), { recursive: true })
+    await new Promise<void>((resolve, reject) => {
+      file.stream().pipe(fs.createWriteStream(outPath))
+        .on('finish', resolve)
+        .on('error', reject)
+    })
+  }
+  fs.unlinkSync(zipPath)
+}
+
+async function extractRar(rarBuffer: Buffer, tempDir: string): Promise<void> {
+  const arrayBuffer = rarBuffer.buffer.slice(
+    rarBuffer.byteOffset, rarBuffer.byteOffset + rarBuffer.byteLength
+  ) as ArrayBuffer
+  const extractor = await createExtractorFromData({ data: arrayBuffer })
+  const { files } = extractor.extract()
+  for (const file of files) {
+    if (file.fileHeader.flags.directory || !file.extraction) continue
+    const normalised = file.fileHeader.name.replace(/\\/g, '/')
+    const outPath = path.join(tempDir, normalised)
+    await fs.promises.mkdir(path.dirname(outPath), { recursive: true })
+    await fs.promises.writeFile(outPath, file.extraction)
+  }
+}
+
 async function readFileFromMultipart(req: HttpRequest): Promise<Buffer> {
   const rawBody = Buffer.from(await req.arrayBuffer())
 
@@ -128,22 +165,11 @@ async function ingestZip(req: HttpRequest, _ctx: InvocationContext): Promise<Htt
   fs.rmSync(tempDir, { recursive: true, force: true })
   fs.mkdirSync(tempDir, { recursive: true })
 
-  const zipPath = path.join(tempDir, '_upload.zip')
-  fs.writeFileSync(zipPath, zipBuffer)
-
-  const directory = await unzipper.Open.file(zipPath)
-  for (const file of directory.files) {
-    if (file.type !== 'File') continue
-    const outPath = path.join(tempDir, file.path)
-    await fs.promises.mkdir(path.dirname(outPath), { recursive: true })
-    await new Promise<void>((resolve, reject) => {
-      file.stream().pipe(fs.createWriteStream(outPath))
-        .on('finish', resolve)
-        .on('error', reject)
-    })
+  if (isRarBuffer(zipBuffer)) {
+    await extractRar(zipBuffer, tempDir)
+  } else {
+    await extractZip(zipBuffer, tempDir)
   }
-
-  fs.unlinkSync(zipPath)
 
   const manifest = walkDir(tempDir, tempDir)
 

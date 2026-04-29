@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { CheckSquare, FolderOpen, FolderPlus, Github, Layers, MoreHorizontal, Play, Upload } from 'lucide-react'
+import { CheckSquare, FolderOpen, FolderPlus, GitBranch, Layers, MoreHorizontal, Play, Upload } from 'lucide-react'
 import { useAppContext } from '@/contexts/AppContext'
 import { ScanOverlay } from '@/components/ScanOverlay'
 import { SettingsTab } from '@/pages/SettingsTab'
@@ -191,7 +191,7 @@ export function ProjectDetailPage() {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".zip"
+              accept=".zip,.rar"
               style={{ display: 'none' }}
               onChange={e => setSelectedFile(e.target.files?.[0] ?? null)}
             />
@@ -293,7 +293,7 @@ export function ProjectDetailPage() {
           flexShrink: 0,
         }}>
           <div className="row" style={{ gap: 10 }}>
-            <Github size={14} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+            <GitBranch size={14} color="var(--text-muted)" style={{ flexShrink: 0 }} />
             <button
               className="btn btn-primary btn-sm"
               disabled={uploading}
