@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-04-30
 **Current phase:** Phase 4 — Scoring and Tasks
-**Next issue:** #15
+**Next issue:** #16
 
 ---
 
@@ -25,12 +25,13 @@
 | #12 | Orphan detection pass | 2026-04-29 |
 | #13 | Manifest API | 2026-04-30 |
 | #14 | Manifest UI tab | 2026-04-30 |
+| #15 | Score calculation utility | 2026-04-30 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #15.
+None — ready to begin Issue #16.
 
 ---
 
@@ -77,6 +78,7 @@ None — ready to begin Issue #15.
 | #12 | SQL queries cannot be run directly in PowerShell (`SELECT` is parsed as `Select-Object`). Use Azure Data Studio or `sqlcmd` for ad-hoc DB checks. |
 | #13 | The MSI-installed Azure Functions Core Tools (v4.9.0) fails with "Could not load file or assembly 'Yarp.ReverseProxy, Version=2.0.1.0'" due to a version mismatch between the installed DLL (June 2023) and what the binary expects. Workaround: install `azure-functions-core-tools@4` as a local devDependency and change the `start` script to `node node_modules/azure-functions-core-tools/lib/main.js start` — this uses the local bin with its own matching Yarp DLL. |
 | #13 | `getManifest` was previously returning `file_manifests` rows (the ingested file list). Issue #13 repurposed the route to return `dependencies` grouped by category with reference counts — the file-manifest data remains accessible via the `file_manifests` table but is no longer exposed via API (not needed by any frontend issue). |
+| #15 | Task `type = 'other'` has no corresponding column in `project_settings`, so it is hardcoded to weight 1 in `calculateScore`. This is intentional — "other" tasks are low-priority by definition and don't need a configurable weight. |
 | #14 | All dependencies show `status: 'unknown'` after a heavy scan — this is by design. The heavy scan prompt is a pure discovery/extraction tool and never writes status. Status is populated in Phase 5 by the light scan integrations (#20–23). Task generation (#16) will not produce tasks until Phase 5 runs. |
 
 ---
