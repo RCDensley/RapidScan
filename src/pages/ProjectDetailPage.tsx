@@ -47,6 +47,9 @@ export function ProjectDetailPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [scanning, setScanning] = useState(false)
+  const [scanId, setScanId] = useState<string | null>(null)
+  const [scanFilesTotal, setScanFilesTotal] = useState(0)
+  const [scanError, setScanError] = useState<string | null>(null)
   const [fileCount, setFileCount] = useState<number | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
@@ -115,6 +118,19 @@ export function ProjectDetailPage() {
     }
   }
 
+  async function handleRunScan() {
+    if (!id) return
+    setScanError(null)
+    try {
+      const result = await projectsService.startHeavyScan(id)
+      setScanId(result.scan_id)
+      setScanFilesTotal(result.files_total)
+      setScanning(true)
+    } catch (err: unknown) {
+      setScanError(err instanceof Error ? err.message : 'Failed to start scan')
+    }
+  }
+
   async function handleUpload() {
     if (!selectedFile || !id) return
     setUploading(true)
@@ -148,11 +164,14 @@ export function ProjectDetailPage() {
             <button
               className="btn btn-primary"
               disabled={scanning}
-              onClick={() => setScanning(true)}
+              onClick={handleRunScan}
             >
               <Play size={13} strokeWidth={2.5} />
               Run scan
             </button>
+            {scanError && (
+              <span style={{ fontSize: 12, color: 'var(--color-danger)', alignSelf: 'center' }}>{scanError}</span>
+            )}
             <button className="btn btn-secondary btn-icon" title="More actions">
               <MoreHorizontal size={14} />
             </button>
@@ -319,7 +338,14 @@ export function ProjectDetailPage() {
       )}
       {activeTab === 'settings' && <SettingsTab />}
 
-      {scanning && <ScanOverlay onClose={() => setScanning(false)} />}
+      {scanning && scanId && (
+        <ScanOverlay
+          onClose={() => { setScanning(false); setScanId(null) }}
+          projectId={id!}
+          scanId={scanId}
+          filesTotal={scanFilesTotal}
+        />
+      )}
     </>
   )
 }

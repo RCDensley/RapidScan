@@ -173,6 +173,11 @@ async function ingestGithub(req: HttpRequest, ctx: InvocationContext): Promise<H
         `)
     }
 
+    await new sql.Request(tx)
+      .input('id', sql.UniqueIdentifier, id)
+      .input('sourcePath', sql.NVarChar(1000), tempDir)
+      .query('UPDATE projects SET source_path = @sourcePath WHERE project_id = @id')
+
     await tx.commit()
   } catch (dbErr) {
     await tx.rollback()

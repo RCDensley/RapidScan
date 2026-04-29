@@ -1,4 +1,4 @@
-import type { Project, InputType, FileManifestEntry } from '@/types'
+import type { Project, InputType, FileManifestEntry, ScanHistoryEntry } from '@/types'
 
 export interface CreateProjectPayload {
   name: string
@@ -74,5 +74,15 @@ export const projectsService = {
     return request<{ files: FileManifestEntry[]; count: number }>(`/api/projects/${id}/ingest/github`, {
       method: 'POST',
     })
+  },
+
+  startHeavyScan(id: string): Promise<{ scan_id: string; files_total: number }> {
+    return request<{ scan_id: string; files_total: number }>(`/api/projects/${id}/scan/heavy`, {
+      method: 'POST',
+    })
+  },
+
+  getScanHistory(id: string): Promise<ScanHistoryEntry[]> {
+    return request<ScanHistoryEntry[]>(`/api/projects/${id}/scan-history`)
   },
 }

@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-04-29
 **Current phase:** Phase 3 — Scan Engine
-**Next issue:** #11 — Scan orchestration loop
+**Next issue:** #12
 
 ---
 
@@ -21,12 +21,13 @@
 | #8 | GitHub repo ingestion | 2026-04-29 |
 | #9 | Heavy scan AI prompt design | 2026-04-29 |
 | #10 | Dependency upsert logic | 2026-04-29 |
+| #11 | Scan orchestration loop | 2026-04-29 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #11.
+None — ready to begin Issue #12.
 
 ---
 
@@ -61,7 +62,10 @@ None — ready to begin Issue #11.
 | #10 | ts-jest 29.x supports Jest 30.x via peer dependency range `^29.0.0 \|\| ^30.0.0` — no version downgrade needed. |
 | #10 | The mssql fluent API (`pool.request().input(...).query(...)`) mocks cleanly with `{ input: jest.fn().mockReturnThis(), query: mockQueue }` — a single shared mockRequest per pool.request() call works because each SQL operation reads the next queued `mockResolvedValueOnce` response. |
 | #8 | Sequential per-file content fetches scale to ~1,000 files within the Azure Functions default 5-min timeout (assuming ~200 ms/call). Repos significantly larger than that may time out. |
-| #8 | The zip ingestion (`ingest.ts`) cleans up its tempDir after building the manifest. When Issue #11 is implemented, that cleanup will need to be removed (or zip files stored persistently) so the scan engine can read file contents. Flag this as a known gap going into #11. |
+| #11 | Azure Functions v4 Node.js worker stays alive after returning an HTTP response in local dev (`func start`), so `setImmediate` fire-and-forget works for the background scan loop. In production, the host may kill the worker — Durable Functions would be needed for guaranteed execution. |
+| #11 | The scan engine needs a base directory to resolve relative `file_manifests.file_path` values. Added `source_path NVARCHAR(1000) NULL` to the `projects` table; all three ingest handlers now save it after a successful ingest. Run `ALTER TABLE projects ADD source_path NVARCHAR(1000) NULL` on existing databases. |
+| #11 | Zip ingestion now uses the same stable tempDir pattern as GitHub ingestion (`os.tmpdir()/rapidscan/{id}`), clearing and re-extracting on each ingest. The old timestamped-and-deleted pattern was incompatible with the scan engine needing to read files after the ingest response. |
+| #11 | DB progress updates fire on every file (not every N files) — acceptable because the per-file cost is dominated by the ~2–5 s AI round-trip. Revisit if files with no AI content (binary, skipped) are ever added to the loop. |
 
 ---
 

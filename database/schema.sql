@@ -7,6 +7,7 @@ CREATE TABLE projects (
   name              NVARCHAR(255) NOT NULL,
   repo_url          NVARCHAR(500) NULL,
   input_type        NVARCHAR(20) NOT NULL CHECK (input_type IN ('zip', 'local', 'github')),
+  source_path       NVARCHAR(1000) NULL,  -- base directory for scan engine; set at ingest time
   created_at        DATETIME2 DEFAULT GETUTCDATE(),
   last_scanned_at   DATETIME2 NULL,
   CONSTRAINT uq_project_name UNIQUE (name)

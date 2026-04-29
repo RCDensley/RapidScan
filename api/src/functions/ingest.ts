@@ -123,59 +123,61 @@ async function ingestZip(req: HttpRequest, _ctx: InvocationContext): Promise<Htt
     return { status: e.code ?? 400, jsonBody: { error: e.message ?? 'Invalid upload' } }
   }
 
-  const tempDir = path.join(os.tmpdir(), `rapidscan-${id}-${Date.now()}`)
+  // Stable per-project temp dir — persists so the scan engine can read files after ingest
+  const tempDir = path.join(os.tmpdir(), 'rapidscan', id)
+  fs.rmSync(tempDir, { recursive: true, force: true })
+  fs.mkdirSync(tempDir, { recursive: true })
 
-  try {
-    fs.mkdirSync(tempDir, { recursive: true })
+  const zipPath = path.join(tempDir, '_upload.zip')
+  fs.writeFileSync(zipPath, zipBuffer)
 
-    const zipPath = path.join(tempDir, '_upload.zip')
-    fs.writeFileSync(zipPath, zipBuffer)
-
-    const directory = await unzipper.Open.file(zipPath)
-    for (const file of directory.files) {
-      if (file.type !== 'File') continue
-      const outPath = path.join(tempDir, file.path)
-      await fs.promises.mkdir(path.dirname(outPath), { recursive: true })
-      await new Promise<void>((resolve, reject) => {
-        file.stream().pipe(fs.createWriteStream(outPath))
-          .on('finish', resolve)
-          .on('error', reject)
-      })
-    }
-
-    fs.unlinkSync(zipPath)
-
-    const manifest = walkDir(tempDir, tempDir)
-
-    const tx = new sql.Transaction(pool)
-    await tx.begin()
-    try {
-      await new sql.Request(tx)
-        .input('id', sql.UniqueIdentifier, id)
-        .query('DELETE FROM file_manifests WHERE project_id = @id')
-
-      for (const entry of manifest) {
-        await new sql.Request(tx)
-          .input('project_id', sql.UniqueIdentifier, id)
-          .input('file_path', sql.NVarChar(1000), entry.path)
-          .input('extension', sql.NVarChar(50), entry.extension || null)
-          .input('size_bytes', sql.BigInt, entry.sizeBytes)
-          .query(`
-            INSERT INTO file_manifests (project_id, file_path, extension, size_bytes)
-            VALUES (@project_id, @file_path, @extension, @size_bytes)
-          `)
-      }
-
-      await tx.commit()
-    } catch (dbErr) {
-      await tx.rollback()
-      throw dbErr
-    }
-
-    return { status: 200, jsonBody: { files: manifest, count: manifest.length } }
-  } finally {
-    try { fs.rmSync(tempDir, { recursive: true, force: true }) } catch { /* best-effort cleanup */ }
+  const directory = await unzipper.Open.file(zipPath)
+  for (const file of directory.files) {
+    if (file.type !== 'File') continue
+    const outPath = path.join(tempDir, file.path)
+    await fs.promises.mkdir(path.dirname(outPath), { recursive: true })
+    await new Promise<void>((resolve, reject) => {
+      file.stream().pipe(fs.createWriteStream(outPath))
+        .on('finish', resolve)
+        .on('error', reject)
+    })
   }
+
+  fs.unlinkSync(zipPath)
+
+  const manifest = walkDir(tempDir, tempDir)
+
+  const tx = new sql.Transaction(pool)
+  await tx.begin()
+  try {
+    await new sql.Request(tx)
+      .input('id', sql.UniqueIdentifier, id)
+      .query('DELETE FROM file_manifests WHERE project_id = @id')
+
+    for (const entry of manifest) {
+      await new sql.Request(tx)
+        .input('project_id', sql.UniqueIdentifier, id)
+        .input('file_path', sql.NVarChar(1000), entry.path)
+        .input('extension', sql.NVarChar(50), entry.extension || null)
+        .input('size_bytes', sql.BigInt, entry.sizeBytes)
+        .query(`
+          INSERT INTO file_manifests (project_id, file_path, extension, size_bytes)
+          VALUES (@project_id, @file_path, @extension, @size_bytes)
+        `)
+    }
+
+    await new sql.Request(tx)
+      .input('id', sql.UniqueIdentifier, id)
+      .input('sourcePath', sql.NVarChar(1000), tempDir)
+      .query('UPDATE projects SET source_path = @sourcePath WHERE project_id = @id')
+
+    await tx.commit()
+  } catch (dbErr) {
+    await tx.rollback()
+    throw dbErr
+  }
+
+  return { status: 200, jsonBody: { files: manifest, count: manifest.length } }
 }
 
 app.http('ingestZip', {
@@ -243,6 +245,11 @@ async function ingestLocal(req: HttpRequest, _ctx: InvocationContext): Promise<H
           VALUES (@project_id, @file_path, @extension, @size_bytes)
         `)
     }
+
+    await new sql.Request(tx)
+      .input('id', sql.UniqueIdentifier, id)
+      .input('sourcePath', sql.NVarChar(1000), directoryPath)
+      .query('UPDATE projects SET source_path = @sourcePath WHERE project_id = @id')
 
     await tx.commit()
   } catch (dbErr) {
