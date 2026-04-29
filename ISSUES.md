@@ -105,25 +105,38 @@ Expected: create returns 201, list returns the project, duplicate returns 409, d
 **Description:**
 Design the full UI/UX of RapidScan before any frontend code is written. This issue produces the visual design decisions and component system that all subsequent frontend issues (#5, #14, #18, #25) will implement.
 
-Work to complete and commit to `docs/design/DESIGN_SPEC.md`:
+Work to complete and commit to `docs/design/DESIGN_SPEC.md`.
+
+**Design direction:**
+- Dark mode only — dusk palette (deep dark backgrounds, not pure black)
+- Blurred backdrop when modals/popups are open
+- Emerald green as the primary accent colour
+- Flat design with muted, desaturated colours
+- Subtle rounded edges and soft shadows throughout for a floaty feel
+- Rounded Helvetica-inspired typography (e.g. Inter, Geist)
+- Left-hand collapsible sidebar: icon-only when collapsed, smooth hover animation expands to show the title (game-like feel)
+- Scan progress: AI character animation lifting and stacking boxes in a loop while any scan runs
+- Task row urgency highlights: muted red (critical), amber (high/medium), green (low), blue (orphaned/cleanup)
 
 **Screen inventory (annotated wireframes or detailed descriptions for each):**
 - Projects list: empty state, populated state (name, input type, last scanned, open task count)
-- New Project modal: all three input type variants (zip / local / github), PAT field conditional display
-- Project detail: header layout, three-tab navigation structure
+- New Project modal: all three input type variants (zip / local / github), PAT field conditional display, blurred backdrop
+- Project detail: header layout, collapsible left sidebar navigation with icon tabs
 - Manifest tab: category group list, dependency row layout, side panel (references + call chain hierarchy)
-- Tasks tab: scored task list, task side panel (description, location map, fix/tests as code blocks, status control)
+- Tasks tab: scored task list with urgency highlight rows, task side panel (description, location map, fix/tests as code blocks, status control)
 - Settings tab: all five sections (GitHub connection, scan config, issue creation, scoring weights, scoring explanation)
-- Scan progress overlay: file counter, current file, elapsed time, recent findings preview
+- Scan progress overlay: AI box-lifting animation, file counter, current file, elapsed time, recent findings preview
 - All empty states across the user journey
 
 **Decisions to document:**
 - Component library selection (with rationale)
+- Full colour token set: background layers, surface, border, accent (emerald), text hierarchy
 - Status visual tokens: colour, icon, and label for `healthy / warning / critical / deprecated / unknown`
 - Severity badges: colour and label for `critical / high / medium / low`
 - Score display convention (numeric badge, colour thresholds if any)
-- Layout approach: side panel pattern (drawer vs split view), tab layout
-- Responsive strategy (desktop-first is acceptable for an internal tool)
+- Side panel pattern (drawer vs split view)
+- Sidebar animation spec (easing, duration, trigger)
+- Scan animation approach (CSS, Lottie, or similar)
 
 **Acceptance criteria:**
 - `docs/design/DESIGN_SPEC.md` covers all screens listed above with no ambiguous gaps
