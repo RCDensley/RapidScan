@@ -55,6 +55,9 @@ export function NewProjectModal({ onClose, onCreated }: NewProjectModalProps) {
       if (type === 'github') { payload.repo_url = url.trim(); if (pat.trim()) payload.github_pat = pat.trim() }
       if (type === 'local')  { payload.repo_url = localPath.trim() }
       const project = await projectsService.create(payload)
+      if (type === 'zip' && zipFile) {
+        await projectsService.ingestZip(project.project_id, zipFile)
+      }
       onCreated(project)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to create project')
@@ -201,7 +204,7 @@ export function NewProjectModal({ onClose, onCreated }: NewProjectModalProps) {
             disabled={!valid || submitting}
             onClick={handleCreate}
           >
-            {submitting ? 'Creating…' : 'Create project'}
+            {submitting ? (type === 'zip' && zipFile ? 'Uploading…' : 'Creating…') : 'Create project'}
           </button>
         </div>
       </div>
