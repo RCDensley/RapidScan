@@ -92,6 +92,8 @@ None — ready to begin Issue #20.
 | #18 | "Show resolved" toggle lazy-loads hidden tasks on first click (two parallel calls: `?status=resolved` and `?status=dismissed`). Merged into a single `allTasks` array; display filtering is purely client-side after that. |
 | #19 | Side-effect imports (`import '../lib/monitoring/stub-npm'`) are the registration pattern — importing the file causes `registerHandler()` to run at module load time. Issues #20-23 replace the stub with real handlers using the same pattern. |
 | #19 | Light scan does not track per-dependency progress (no `files_processed`/`current_file`) — progress tracking is per handler, not per file. The ScanOverlay shows 0/0 files and elapsed time only, which is acceptable for a status-check scan. |
+| #14 (addition) | Manifest-task cross-linking: dep detail panel fetches related tasks in parallel with dep detail (`Promise.all`). Navigation from manifest to task panel uses a `{ key, taskId }` object — incrementing `key` ensures the `useEffect` always fires even if the same task is navigated to twice. |
+| General | `azure-functions-core-tools@4.10.0` occasionally throws `Could not load file or assembly 'Microsoft.AspNetCore.Server.Kestrel.Transport.Quic'` on first startup attempt. Intermittent — running `npm start` again immediately resolves it. Not a code issue. |
 
 ---
 
@@ -107,6 +109,7 @@ None — ready to begin Issue #20.
 | 2026-04-29 | CSS implementation follows Design_Spec/ reference files (not just docs/design/DESIGN_SPEC.md) | User provided working reference implementation with exact look/feel; sidebar always present, CSS class system, CSS robot animation |
 | 2026-04-29 | RAR archive support added alongside ZIP | User confirmed need during #5 testing; same `input_type: 'zip'` used at API level since both are archives |
 | 2026-04-30 | RAR extraction implemented via `node-unrar-js` | Patch applied during #12 testing when upload of a real RAR file hit a 500. Magic-byte detection dispatches to ZIP or RAR extractor. |
+| 2026-04-30 | Manifest-task cross-linking added outside formal issue process | Small enough (5 files, no schema change) to implement directly. Documented via comment on Issue #14 rather than a new issue. |
 
 ---
 
