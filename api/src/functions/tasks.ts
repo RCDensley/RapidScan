@@ -49,6 +49,9 @@ async function getTasks(req: HttpRequest, _ctx: InvocationContext): Promise<Http
   const statusParam = url.searchParams.get('status')
   const severityParam = url.searchParams.get('severity')
   const typeParam = url.searchParams.get('type')
+  const dependencyIdParam = url.searchParams.get('dependency_id')
+
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
   if (statusParam && !VALID_STATUSES.includes(statusParam as typeof VALID_STATUSES[number])) {
     return { status: 400, jsonBody: { error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` } }
@@ -58,6 +61,9 @@ async function getTasks(req: HttpRequest, _ctx: InvocationContext): Promise<Http
   }
   if (typeParam && !VALID_TYPES.includes(typeParam as typeof VALID_TYPES[number])) {
     return { status: 400, jsonBody: { error: `Invalid type. Must be one of: ${VALID_TYPES.join(', ')}` } }
+  }
+  if (dependencyIdParam && !UUID_RE.test(dependencyIdParam)) {
+    return { status: 400, jsonBody: { error: 'Invalid dependency_id format' } }
   }
 
   const conditions: string[] = ['project_id = @id']
@@ -78,6 +84,11 @@ async function getTasks(req: HttpRequest, _ctx: InvocationContext): Promise<Http
   if (typeParam) {
     conditions.push('type = @type')
     request.input('type', sql.NVarChar(20), typeParam)
+  }
+
+  if (dependencyIdParam) {
+    conditions.push('dependency_id = @depId')
+    request.input('depId', sql.UniqueIdentifier, dependencyIdParam)
   }
 
   const where = conditions.join(' AND ')

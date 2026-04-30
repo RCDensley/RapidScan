@@ -24,7 +24,7 @@ function formatRelativeTime(date: string | null): string {
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { activeTab } = useAppContext()
+  const { activeTab, setActiveTab } = useAppContext()
 
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
@@ -34,6 +34,7 @@ export function ProjectDetailPage() {
   const [scanFilesTotal, setScanFilesTotal] = useState(0)
   const [scanError, setScanError] = useState<string | null>(null)
   const [lightScanError, setLightScanError] = useState<string | null>(null)
+  const [taskNav, setTaskNav] = useState<{ key: number; taskId: string } | null>(null)
   const [manifestRefreshKey, setManifestRefreshKey] = useState(0)
   const [fileCount, setFileCount] = useState<number | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -114,6 +115,11 @@ export function ProjectDetailPage() {
     } catch (err: unknown) {
       setScanError(err instanceof Error ? err.message : 'Failed to start scan')
     }
+  }
+
+  function handleNavigateToTask(taskId: string) {
+    setTaskNav(prev => ({ key: (prev?.key ?? 0) + 1, taskId }))
+    setActiveTab('tasks')
   }
 
   async function handleRunLightScan() {
@@ -341,10 +347,11 @@ export function ProjectDetailPage() {
           projectId={id!}
           lastScannedAt={project.last_scanned_at}
           refreshKey={manifestRefreshKey}
+          onNavigateToTask={handleNavigateToTask}
         />
       )}
       {activeTab === 'tasks' && (
-        <TasksTab projectId={id!} lastScannedAt={project.last_scanned_at} />
+        <TasksTab projectId={id!} lastScannedAt={project.last_scanned_at} taskNav={taskNav} />
       )}
       {activeTab === 'settings' && <SettingsTab />}
 

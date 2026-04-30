@@ -100,8 +100,11 @@ export const projectsService = {
     return request<DependencyDetail>(`/api/projects/${id}/manifest/${depId}`)
   },
 
-  getTasks(id: string, status?: string): Promise<Task[]> {
-    const qs = status ? `?status=${encodeURIComponent(status)}` : ''
+  getTasks(id: string, status?: string, dependencyId?: string): Promise<Task[]> {
+    const params = new URLSearchParams()
+    if (status) params.set('status', status)
+    if (dependencyId) params.set('dependency_id', dependencyId)
+    const qs = params.size > 0 ? `?${params.toString()}` : ''
     return request<Task[]>(`/api/projects/${id}/tasks${qs}`)
   },
 

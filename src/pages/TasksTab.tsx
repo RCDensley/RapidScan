@@ -201,9 +201,10 @@ function TaskDetailPanel({
 interface TasksTabProps {
   projectId: string
   lastScannedAt: string | null
+  taskNav?: { key: number; taskId: string } | null
 }
 
-export function TasksTab({ projectId, lastScannedAt }: TasksTabProps) {
+export function TasksTab({ projectId, lastScannedAt, taskNav }: TasksTabProps) {
   const [allTasks, setAllTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -226,6 +227,10 @@ export function TasksTab({ projectId, lastScannedAt }: TasksTabProps) {
       .catch(() => setError('Failed to load tasks'))
       .finally(() => setLoading(false))
   }, [projectId])
+
+  useEffect(() => {
+    if (taskNav?.taskId) setSelectedTaskId(taskNav.taskId)
+  }, [taskNav])
 
   async function toggleShowHidden() {
     const next = !showHidden

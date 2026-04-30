@@ -4,6 +4,7 @@ import {
   Archive,
   CheckCircle,
   ChevronRight,
+  ClipboardList,
   Clock,
   HelpCircle,
   Layers,
@@ -12,7 +13,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { projectsService } from '@/services/projects'
-import type { DependencyDetail, DependencyDetailReference, ManifestDepRow, ManifestResponse } from '@/types'
+import type { DependencyDetail, DependencyDetailReference, ManifestDepRow, ManifestResponse, Task } from '@/types'
 
 const CATEGORY_CONFIG: Record<string, { name: string; order: number }> = {
   'npm':            { name: 'npm packages',    order: 0 },
@@ -68,10 +69,14 @@ function StatusBadge({ status }: { status: string }) {
 
 function DepDetail({
   dep,
+  relatedTasks,
   onClose,
+  onViewTask,
 }: {
   dep: DependencyDetail
+  relatedTasks: Task[]
   onClose: () => void
+  onViewTask: (taskId: string) => void
 }) {
   const catLabel = CATEGORY_CONFIG[dep.category]?.name ?? dep.category
 
@@ -106,8 +111,19 @@ function DepDetail({
               </>
             )}
           </div>
-          <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
             <StatusBadge status={dep.status} />
+            {relatedTasks.length > 0 && (
+              <button
+                className="btn btn-secondary btn-sm"
+                style={{ height: 22, fontSize: 11, padding: '0 8px', gap: 4 }}
+                onClick={() => onViewTask(relatedTasks[0].task_id)}
+              >
+                <ClipboardList size={11} strokeWidth={2} />
+                {relatedTasks.length === 1 ? '1 open task' : `${relatedTasks.length} open tasks`}
+                <span style={{ color: 'var(--text-muted)' }}>· {relatedTasks[0].severity}</span>
+              </button>
+            )}
           </div>
         </div>
         <button className="x-btn" onClick={onClose}><X size={14} /></button>
@@ -168,9 +184,10 @@ interface ManifestTabProps {
   projectId: string
   lastScannedAt: string | null
   refreshKey?: number
+  onNavigateToTask: (taskId: string) => void
 }
 
-export function ManifestTab({ projectId, lastScannedAt, refreshKey }: ManifestTabProps) {
+export function ManifestTab({ projectId, lastScannedAt, refreshKey, onNavigateToTask }: ManifestTabProps) {
   const [manifest, setManifest] = useState<ManifestResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -179,6 +196,7 @@ export function ManifestTab({ projectId, lastScannedAt, refreshKey }: ManifestTa
   const [selectedDepId, setSelectedDepId] = useState<string | null>(null)
   const [depDetail, setDepDetail] = useState<DependencyDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
+  const [depTasks, setDepTasks] = useState<Task[]>([])
 
   useEffect(() => {
     setLoading(true)
@@ -194,12 +212,15 @@ export function ManifestTab({ projectId, lastScannedAt, refreshKey }: ManifestTa
   }, [projectId, refreshKey])
 
   useEffect(() => {
-    if (!selectedDepId) { setDepDetail(null); return }
+    if (!selectedDepId) { setDepDetail(null); setDepTasks([]); return }
     setDetailLoading(true)
-    projectsService
-      .getDependencyDetail(projectId, selectedDepId)
-      .then(setDepDetail)
-      .catch(() => setDepDetail(null))
+    setDepTasks([])
+    Promise.all([
+      projectsService.getDependencyDetail(projectId, selectedDepId),
+      projectsService.getTasks(projectId, undefined, selectedDepId),
+    ])
+      .then(([detail, tasks]) => { setDepDetail(detail); setDepTasks(tasks) })
+      .catch(() => { setDepDetail(null); setDepTasks([]) })
       .finally(() => setDetailLoading(false))
   }, [projectId, selectedDepId])
 
@@ -364,7 +385,12 @@ export function ManifestTab({ projectId, lastScannedAt, refreshKey }: ManifestTa
                 <div style={{ width: 22, height: 22, borderRadius: '50%', border: '2px solid var(--border-subtle)', borderTopColor: 'var(--accent)', animation: 'spin 0.8s linear infinite' }} />
               </div>
             ) : depDetail ? (
-              <DepDetail dep={depDetail} onClose={() => setSelectedDepId(null)} />
+              <DepDetail
+                dep={depDetail}
+                relatedTasks={depTasks}
+                onClose={() => setSelectedDepId(null)}
+                onViewTask={onNavigateToTask}
+              />
             ) : null
           )}
         </div>
