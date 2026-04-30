@@ -1,8 +1,27 @@
 # RapidScan - Development Progress
 
-**Last updated:** 2026-04-30
+**Last updated:** 2026-05-01
 **Current phase:** Phase 5 — Light Scan Monitoring
 **Next issue:** #20
+
+## Revised Implementation Sequence
+
+| # | Title | Phase | Notes |
+| --- | --- | --- | --- |
+| #20 | npm advisory API integration | 5 | |
+| #21 | Dependabot GraphQL integration | 5 | |
+| #22 | Azure SDK and AI model monitoring | 5 | |
+| #23 | Third-party API monitoring | 5 | |
+| #33 | HIBP breach monitoring | 5 | Needs CategoryHandler signature update (pass settings to handlers) |
+| #24 | Project settings API | 6 | Now includes enable_security_pass + enable_hibp_monitoring columns |
+| #25 | Settings UI tab | 6 | Now includes security pass + HIBP toggles |
+| #32 | Security pass in full scan | 6.5 | Must come after #24 — reads enable_security_pass from settings |
+| #31 | Task resolution notes and audit log | 4-ext | Can slot here or earlier |
+| #26 | GitHub PAT validation | 7 | |
+| #27 | GitHub issue creation | 7 | |
+| #28 | Detailed scan progress UI | 8 | |
+| #29 | Empty states and onboarding flow | 8 | |
+| #30 | Deploy to Azure SWA | 8 | |
 
 ---
 
