@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { FolderOpen, FolderPlus, GitBranch, MoreHorizontal, Play, Upload } from 'lucide-react'
+import { FolderOpen, FolderPlus, GitBranch, MoreHorizontal, Play, RefreshCw, Upload } from 'lucide-react'
 import { useAppContext } from '@/contexts/AppContext'
 import { ScanOverlay } from '@/components/ScanOverlay'
 import { ManifestTab } from '@/pages/ManifestTab'
@@ -33,6 +33,7 @@ export function ProjectDetailPage() {
   const [scanId, setScanId] = useState<string | null>(null)
   const [scanFilesTotal, setScanFilesTotal] = useState(0)
   const [scanError, setScanError] = useState<string | null>(null)
+  const [lightScanError, setLightScanError] = useState<string | null>(null)
   const [manifestRefreshKey, setManifestRefreshKey] = useState(0)
   const [fileCount, setFileCount] = useState<number | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -115,6 +116,19 @@ export function ProjectDetailPage() {
     }
   }
 
+  async function handleRunLightScan() {
+    if (!id) return
+    setLightScanError(null)
+    try {
+      const result = await projectsService.startLightScan(id)
+      setScanId(result.scan_id)
+      setScanFilesTotal(0)
+      setScanning(true)
+    } catch (err: unknown) {
+      setLightScanError(err instanceof Error ? err.message : 'Failed to start light scan')
+    }
+  }
+
   async function handleUpload() {
     if (!selectedFile || !id) return
     setUploading(true)
@@ -146,15 +160,27 @@ export function ProjectDetailPage() {
           </div>
           <div className="row" style={{ gap: 8 }}>
             <button
+              className="btn btn-secondary"
+              disabled={scanning}
+              onClick={handleRunLightScan}
+              title="Check dependency statuses"
+            >
+              <RefreshCw size={13} strokeWidth={2.5} />
+              Light scan
+            </button>
+            <button
               className="btn btn-primary"
               disabled={scanning}
               onClick={handleRunScan}
             >
               <Play size={13} strokeWidth={2.5} />
-              Run scan
+              Heavy scan
             </button>
             {scanError && (
               <span style={{ fontSize: 12, color: 'var(--color-danger)', alignSelf: 'center' }}>{scanError}</span>
+            )}
+            {lightScanError && (
+              <span style={{ fontSize: 12, color: 'var(--color-danger)', alignSelf: 'center' }}>{lightScanError}</span>
             )}
             <button className="btn btn-secondary btn-icon" title="More actions">
               <MoreHorizontal size={14} />

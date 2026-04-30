@@ -82,6 +82,12 @@ export const projectsService = {
     })
   },
 
+  startLightScan(id: string): Promise<{ scan_id: string }> {
+    return request<{ scan_id: string }>(`/api/projects/${id}/scan/light`, {
+      method: 'POST',
+    })
+  },
+
   getScanHistory(id: string): Promise<ScanHistoryEntry[]> {
     return request<ScanHistoryEntry[]>(`/api/projects/${id}/scan-history`)
   },

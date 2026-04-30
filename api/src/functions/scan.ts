@@ -5,10 +5,12 @@ import * as path from 'path'
 import { getPool } from '../lib/db'
 import { upsertDependency } from '../lib/scan/upsert'
 import { runTaskGeneration } from '../lib/scan/task-generation'
+import { runLightScan } from '../lib/scan/light-scan'
 import { heavyComplete } from '../lib/ai/openai'
 import { HEAVY_SCAN_SYSTEM, buildHeavyScanUser } from '../lib/prompts/heavy-scan'
 import { ORPHAN_DETECTION_SYSTEM, buildOrphanDetectionUser, extractPatterns } from '../lib/prompts/orphan-detection'
 import type { DependencyFinding, OrphanFinding } from '../types/scan'
+import '../lib/monitoring/stub-npm'
 
 async function runOrphanDetection(
   pool: sql.ConnectionPool,
@@ -401,6 +403,47 @@ async function getDependencyDetail(req: HttpRequest, _ctx: InvocationContext): P
   return { status: 200, jsonBody: dep }
 }
 
+async function startLightScan(req: HttpRequest, ctx: InvocationContext): Promise<HttpResponseInit> {
+  const id = req.params.id
+  const pool = await getPool()
+
+  const projectExists = await pool.request()
+    .input('id', sql.UniqueIdentifier, id)
+    .query('SELECT 1 AS exists_flag FROM projects WHERE project_id = @id')
+
+  if (projectExists.recordset.length === 0) {
+    return { status: 404, jsonBody: { error: 'Project not found' } }
+  }
+
+  const scanRecord = await pool.request()
+    .input('projectId', sql.UniqueIdentifier, id)
+    .query<{ scan_id: string }>(`
+      INSERT INTO scan_history (project_id, scan_type, triggered_by)
+      OUTPUT inserted.scan_id
+      VALUES (@projectId, 'light', 'manual')
+    `)
+
+  const scanId = scanRecord.recordset[0].scan_id
+
+  setImmediate(() => {
+    runLightScan(pool, id, scanId, ctx).catch(async err => {
+      ctx.log(`Light scan ${scanId} failed with unhandled error: ${err instanceof Error ? err.message : String(err)}`)
+      try {
+        await pool.request()
+          .input('scanId', sql.UniqueIdentifier, scanId)
+          .input('errorMessage', sql.NVarChar(4000), err instanceof Error ? err.message : String(err))
+          .query(`
+            UPDATE scan_history
+            SET error_message = @errorMessage, completed_at = GETUTCDATE()
+            WHERE scan_id = @scanId
+          `)
+      } catch { /* best effort */ }
+    })
+  })
+
+  return { status: 202, jsonBody: { scan_id: scanId } }
+}
+
 async function generateTasks(req: HttpRequest, ctx: InvocationContext): Promise<HttpResponseInit> {
   const id = req.params.id
   const pool = await getPool()
@@ -448,6 +491,13 @@ app.http('getDependencyDetail', {
   route: 'projects/{id}/manifest/{dependencyId}',
   authLevel: 'anonymous',
   handler: getDependencyDetail,
+})
+
+app.http('startLightScan', {
+  methods: ['POST'],
+  route: 'projects/{id}/scan/light',
+  authLevel: 'anonymous',
+  handler: startLightScan,
 })
 
 app.http('generateTasks', {

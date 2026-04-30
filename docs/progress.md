@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-04-30
 **Current phase:** Phase 5 — Light Scan Monitoring
-**Next issue:** #19
+**Next issue:** #20
 
 ---
 
@@ -29,12 +29,13 @@
 | #16 | Task generation pipeline | 2026-04-30 |
 | #17 | Tasks API | 2026-04-30 |
 | #18 | Tasks UI tab | 2026-04-30 |
+| #19 | Light scan orchestration framework | 2026-04-30 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #19.
+None — ready to begin Issue #20.
 
 ---
 
@@ -89,6 +90,8 @@ None — ready to begin Issue #19.
 | #17 | Default task list excludes `resolved` and `dismissed` by returning only `open`/`in-progress`. Passing `?status=dismissed` (or any valid status) overrides the default. Dynamic WHERE clause is safe because all filter values are validated against enum arrays before interpolation. |
 | #18 | `task.location_map?.references[0]` crashes if `references` is missing from the JSON payload — must use `?.references?.[0]` (optional chaining on the array access too, not just the parent object). |
 | #18 | "Show resolved" toggle lazy-loads hidden tasks on first click (two parallel calls: `?status=resolved` and `?status=dismissed`). Merged into a single `allTasks` array; display filtering is purely client-side after that. |
+| #19 | Side-effect imports (`import '../lib/monitoring/stub-npm'`) are the registration pattern — importing the file causes `registerHandler()` to run at module load time. Issues #20-23 replace the stub with real handlers using the same pattern. |
+| #19 | Light scan does not track per-dependency progress (no `files_processed`/`current_file`) — progress tracking is per handler, not per file. The ScanOverlay shows 0/0 files and elapsed time only, which is acceptable for a status-check scan. |
 
 ---
 
