@@ -1,8 +1,8 @@
 # RapidScan - Development Progress
 
 **Last updated:** 2026-04-30
-**Current phase:** Phase 4 — Scoring and Tasks
-**Next issue:** #18
+**Current phase:** Phase 5 — Light Scan Monitoring
+**Next issue:** #19
 
 ---
 
@@ -28,12 +28,13 @@
 | #15 | Score calculation utility | 2026-04-30 |
 | #16 | Task generation pipeline | 2026-04-30 |
 | #17 | Tasks API | 2026-04-30 |
+| #18 | Tasks UI tab | 2026-04-30 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #18.
+None — ready to begin Issue #19.
 
 ---
 
@@ -86,6 +87,8 @@ None — ready to begin Issue #18.
 | #16 | `sql.NVarChar(sql.MAX)` works correctly in mssql v10 for inserting into NVARCHAR(MAX) columns (location_map, description, recommended_fix, suggested_tests). |
 | #17 | `azure-functions-core-tools@4.9.0` crashes on startup with `Azure.Identity.VisualStudioCodeCredential` fatal error (0x8007000B — wrong native binary architecture). Fixed by updating to `4.10.0`. |
 | #17 | Default task list excludes `resolved` and `dismissed` by returning only `open`/`in-progress`. Passing `?status=dismissed` (or any valid status) overrides the default. Dynamic WHERE clause is safe because all filter values are validated against enum arrays before interpolation. |
+| #18 | `task.location_map?.references[0]` crashes if `references` is missing from the JSON payload — must use `?.references?.[0]` (optional chaining on the array access too, not just the parent object). |
+| #18 | "Show resolved" toggle lazy-loads hidden tasks on first click (two parallel calls: `?status=resolved` and `?status=dismissed`). Merged into a single `allTasks` array; display filtering is purely client-side after that. |
 
 ---
 
