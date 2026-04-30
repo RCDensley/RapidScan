@@ -49,7 +49,10 @@ export function ProjectDetailPage() {
     setLoadError(false)
     projectsService
       .get(id)
-      .then(setProject)
+      .then(p => {
+        setProject(p)
+        if (p.file_count > 0) setFileCount(p.file_count)
+      })
       .catch(() => setLoadError(true))
       .finally(() => setLoading(false))
   }, [id, navigate])

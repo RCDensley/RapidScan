@@ -18,6 +18,7 @@ export interface Project {
   input_type: InputType
   created_at: string
   last_scanned_at: string | null
+  file_count: number
 }
 
 export interface Dependency {

@@ -22,6 +22,7 @@ async function getProject(req: HttpRequest, _ctx: InvocationContext): Promise<Ht
     .input('id', sql.UniqueIdentifier, id)
     .query(`
       SELECT p.project_id, p.name, p.repo_url, p.input_type, p.created_at, p.last_scanned_at,
+             (SELECT COUNT(*) FROM file_manifests WHERE project_id = p.project_id) AS file_count,
              ps.setting_id, ps.github_pat, ps.github_issue_threshold, ps.detect_orphaned_code,
              ps.light_scan_interval, ps.severity_critical, ps.severity_high, ps.severity_medium,
              ps.severity_low, ps.type_security, ps.type_deprecation, ps.type_version_update,
@@ -46,6 +47,7 @@ async function getProject(req: HttpRequest, _ctx: InvocationContext): Promise<Ht
       input_type: row.input_type,
       created_at: row.created_at,
       last_scanned_at: row.last_scanned_at,
+      file_count: row.file_count as number,
       settings: row.setting_id ? {
         setting_id: row.setting_id,
         github_pat: row.github_pat,
