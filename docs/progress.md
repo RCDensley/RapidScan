@@ -110,6 +110,7 @@ None — ready to begin Issue #20.
 | 2026-04-29 | RAR archive support added alongside ZIP | User confirmed need during #5 testing; same `input_type: 'zip'` used at API level since both are archives |
 | 2026-04-30 | RAR extraction implemented via `node-unrar-js` | Patch applied during #12 testing when upload of a real RAR file hit a 500. Magic-byte detection dispatches to ZIP or RAR extractor. |
 | 2026-04-30 | Manifest-task cross-linking added outside formal issue process | Small enough (5 files, no schema change) to implement directly. Documented via comment on Issue #14 rather than a new issue. |
+| 2026-05-01 | Issue #32 added — security pass in full scan | Covers secrets detection (Gitleaks-derived regex), AI security prompt (auth/injection/CORS), optional Semgrep API. Slots between #23 and #24. Issues #24 and #25 updated to include enable_security_pass column and toggle. |
 
 ---
 
