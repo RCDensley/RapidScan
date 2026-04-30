@@ -1,4 +1,4 @@
-import type { Project, InputType, FileManifestEntry, ScanHistoryEntry, ManifestResponse, DependencyDetail } from '@/types'
+import type { Project, InputType, FileManifestEntry, ScanHistoryEntry, ManifestResponse, DependencyDetail, Task, TaskStatus } from '@/types'
 
 export interface CreateProjectPayload {
   name: string
@@ -92,5 +92,21 @@ export const projectsService = {
 
   getDependencyDetail(id: string, depId: string): Promise<DependencyDetail> {
     return request<DependencyDetail>(`/api/projects/${id}/manifest/${depId}`)
+  },
+
+  getTasks(id: string, status?: string): Promise<Task[]> {
+    const qs = status ? `?status=${encodeURIComponent(status)}` : ''
+    return request<Task[]>(`/api/projects/${id}/tasks${qs}`)
+  },
+
+  getTask(id: string, taskId: string): Promise<Task> {
+    return request<Task>(`/api/projects/${id}/tasks/${taskId}`)
+  },
+
+  updateTaskStatus(id: string, taskId: string, status: TaskStatus): Promise<Task> {
+    return request<Task>(`/api/projects/${id}/tasks/${taskId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    })
   },
 }

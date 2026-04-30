@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { CheckSquare, FolderOpen, FolderPlus, GitBranch, MoreHorizontal, Play, Upload } from 'lucide-react'
+import { FolderOpen, FolderPlus, GitBranch, MoreHorizontal, Play, Upload } from 'lucide-react'
 import { useAppContext } from '@/contexts/AppContext'
 import { ScanOverlay } from '@/components/ScanOverlay'
 import { ManifestTab } from '@/pages/ManifestTab'
+import { TasksTab } from '@/pages/TasksTab'
 import { SettingsTab } from '@/pages/SettingsTab'
 import { projectsService } from '@/services/projects'
 import type { Project } from '@/types'
@@ -19,15 +20,6 @@ function formatRelativeTime(date: string | null): string {
   return `${Math.floor(hours / 24)}d ago`
 }
 
-function TasksPlaceholder() {
-  return (
-    <div className="empty">
-      <div className="empty-icon"><CheckSquare size={28} /></div>
-      <p className="empty-h">No tasks yet</p>
-      <p className="empty-p">Run a scan to generate tasks</p>
-    </div>
-  )
-}
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -326,9 +318,7 @@ export function ProjectDetailPage() {
         />
       )}
       {activeTab === 'tasks' && (
-        <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-          <TasksPlaceholder />
-        </div>
+        <TasksTab projectId={id!} lastScannedAt={project.last_scanned_at} />
       )}
       {activeTab === 'settings' && <SettingsTab />}
 
