@@ -49,6 +49,7 @@
 | #17 | Tasks API | 2026-04-30 |
 | #18 | Tasks UI tab | 2026-04-30 |
 | #19 | Light scan orchestration framework | 2026-04-30 |
+| #19 (extras) | Manifest-task cross-linking; zip modal ingest bug fix; file_count on project load | 2026-05-01 |
 
 ---
 
@@ -113,6 +114,8 @@ None — ready to begin Issue #20.
 | #19 | Light scan does not track per-dependency progress (no `files_processed`/`current_file`) — progress tracking is per handler, not per file. The ScanOverlay shows 0/0 files and elapsed time only, which is acceptable for a status-check scan. |
 | #14 (addition) | Manifest-task cross-linking: dep detail panel fetches related tasks in parallel with dep detail (`Promise.all`). Navigation from manifest to task panel uses a `{ key, taskId }` object — incrementing `key` ensures the `useEffect` always fires even if the same task is navigated to twice. |
 | General | `azure-functions-core-tools@4.10.0` occasionally throws `Could not load file or assembly 'Microsoft.AspNetCore.Server.Kestrel.Transport.Quic'` on first startup attempt. Intermittent — running `npm start` again immediately resolves it. Not a code issue. |
+| Bug fix | `NewProjectModal` collected the zip file in state but `handleCreate` never called `ingestZip` — the file was silently discarded. Fixed by calling `ingestZip` after `create` when `type === 'zip' && zipFile`. |
+| Bug fix | `fileCount` on `ProjectDetailPage` reset to `null` on every page load, showing the upload form even for already-ingested projects. Fixed by adding `file_count` (subquery COUNT from `file_manifests`) to `GET /api/projects/:id` and initialising state from it on load. |
 
 ---
 
