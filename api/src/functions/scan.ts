@@ -11,6 +11,7 @@ import { HEAVY_SCAN_SYSTEM, buildHeavyScanUser } from '../lib/prompts/heavy-scan
 import { ORPHAN_DETECTION_SYSTEM, buildOrphanDetectionUser, extractPatterns } from '../lib/prompts/orphan-detection'
 import type { DependencyFinding, OrphanFinding } from '../types/scan'
 import '../lib/monitoring/npm-advisory'
+import '../lib/monitoring/dependabot'
 
 async function runOrphanDetection(
   pool: sql.ConnectionPool,
