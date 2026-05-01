@@ -36,6 +36,7 @@ export function ScanOverlay({ onClose, projectId, scanId, filesTotal }: ScanOver
   }, [projectId, scanId])
 
   const done = !!scan?.completed_at
+  const isLightScan = scan ? scan.scan_type === 'light' : filesTotal === 0
   const filesProcessed = scan?.files_processed ?? 0
   const total = scan?.files_total ?? filesTotal
   const currentFile = scan?.current_file ?? ''
@@ -64,17 +65,26 @@ export function ScanOverlay({ onClose, projectId, scanId, filesTotal }: ScanOver
           <div className="box carry" style={{ '--drop-to': '54px' } as React.CSSProperties} />
         </div>
 
-        <h2 className="scan-title">{done ? 'Scan complete' : 'Scanning your project…'}</h2>
+        <h2 className="scan-title">{done ? 'Scan complete' : isLightScan ? 'Checking dependencies…' : 'Scanning your project…'}</h2>
 
         <div className="scan-stats">
-          <div className="scan-stat-row">
-            <span className="l">Files processed</span>
-            <span className="v">{filesProcessed} / {total}</span>
-          </div>
-          <div className="bar">
-            <div className="bar-fill" style={{ width: total > 0 ? `${(filesProcessed / total) * 100}%` : '0%' }} />
-          </div>
-          {currentFile && <div className="scan-current">{currentFile}</div>}
+          {isLightScan ? (
+            <div className="scan-stat-row">
+              <span className="l">Status</span>
+              <span className="v">{done ? 'Done' : 'Querying advisories…'}</span>
+            </div>
+          ) : (
+            <>
+              <div className="scan-stat-row">
+                <span className="l">Files processed</span>
+                <span className="v">{filesProcessed} / {total}</span>
+              </div>
+              <div className="bar">
+                <div className="bar-fill" style={{ width: total > 0 ? `${(filesProcessed / total) * 100}%` : '0%' }} />
+              </div>
+              {currentFile && <div className="scan-current">{currentFile}</div>}
+            </>
+          )}
           <div className="scan-stat-row">
             <span className="l">Elapsed</span>
             <span className="v">{mm}:{ss}</span>

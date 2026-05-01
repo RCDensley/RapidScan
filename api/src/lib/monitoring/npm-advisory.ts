@@ -16,10 +16,10 @@ type BulkAdvisoryResponse = Record<string, Advisory[]>
 
 async function fetchLatestVersion(name: string): Promise<string | null> {
   try {
-    const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(name)}`)
+    const res = await fetch(`https://registry.npmjs.org/-/package/${encodeURIComponent(name)}/dist-tags`)
     if (!res.ok) return null
-    const data = await res.json() as { 'dist-tags'?: { latest?: string } }
-    return data['dist-tags']?.latest ?? null
+    const data = await res.json() as { latest?: string }
+    return data.latest ?? null
   } catch {
     return null
   }

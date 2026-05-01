@@ -14,5 +14,8 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:7071',
     },
+    watch: {
+      ignored: ['**/api/**', '**/node_modules/**', '**/__azurite_*', '**/__blobstorage__/**', '**/__queuestorage__/**'],
+    },
   },
 })
