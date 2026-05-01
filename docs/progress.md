@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-05-01
 **Current phase:** Phase 5 — Light Scan Monitoring
-**Next issue:** #20
+**Next issue:** #21
 
 ## Revised Implementation Sequence
 
@@ -50,12 +50,13 @@
 | #18 | Tasks UI tab | 2026-04-30 |
 | #19 | Light scan orchestration framework | 2026-04-30 |
 | #19 (extras) | Manifest-task cross-linking; zip modal ingest bug fix; file_count on project load | 2026-05-01 |
+| #20 | npm advisory API integration | 2026-05-01 |
 
 ---
 
 ## In Progress
 
-None — ready to begin Issue #20.
+None — ready to begin Issue #21.
 
 ---
 
@@ -111,6 +112,8 @@ None — ready to begin Issue #20.
 | #18 | `task.location_map?.references[0]` crashes if `references` is missing from the JSON payload — must use `?.references?.[0]` (optional chaining on the array access too, not just the parent object). |
 | #18 | "Show resolved" toggle lazy-loads hidden tasks on first click (two parallel calls: `?status=resolved` and `?status=dismissed`). Merged into a single `allTasks` array; display filtering is purely client-side after that. |
 | #19 | Side-effect imports (`import '../lib/monitoring/stub-npm'`) are the registration pattern — importing the file causes `registerHandler()` to run at module load time. Issues #20-23 replace the stub with real handlers using the same pattern. |
+| #20 | npm advisory bulk API (`registry.npmjs.org/-/npm/v1/security/advisories/bulk`) takes `{ "package-name": ["version"] }` — NOT `{ "name@version": true }`. Response keys are package names, values are arrays of advisory objects with a `severity` field. |
+| #20 | `azure-functions-core-tools@4.10.0` (local npm devDependency) consistently fails with 0x8007000B at `AddWebJobsScriptHost` startup. Reverted start script to use global `func` (4.9.0 MSI install) which works. Previous workaround to use local npm version is now itself broken. |
 | #19 | Light scan does not track per-dependency progress (no `files_processed`/`current_file`) — progress tracking is per handler, not per file. The ScanOverlay shows 0/0 files and elapsed time only, which is acceptable for a status-check scan. |
 | #14 (addition) | Manifest-task cross-linking: dep detail panel fetches related tasks in parallel with dep detail (`Promise.all`). Navigation from manifest to task panel uses a `{ key, taskId }` object — incrementing `key` ensures the `useEffect` always fires even if the same task is navigated to twice. |
 | General | `azure-functions-core-tools@4.10.0` occasionally throws `Could not load file or assembly 'Microsoft.AspNetCore.Server.Kestrel.Transport.Quic'` on first startup attempt. Intermittent — running `npm start` again immediately resolves it. Not a code issue. |

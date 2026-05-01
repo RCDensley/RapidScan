@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "start": "node node_modules/azure-functions-core-tools/lib/main.js start",
+    "start": "func start",
     "prestart": "npm run build",
     "test": "jest"
   },
